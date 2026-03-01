@@ -13,14 +13,14 @@ Config,14:41:05,16:02:49,16:03:53,16:04:58,17:31:03,1
 
 # Photo unique 10 secondes avant le maximum
 # Photo,Max,-,00:00:10,-,-,-,-,-,ouverture,iso,vitesse_obturation,delai_mlu
-Photo,Max,-,00:00:10,-,-,-,-,-,4,1600,1,500
+Photo,Max,-,00:00:10,-,-,-,-,-,2.8,1600,1,500
 
 # Photo unique 30 secondes après C2
-Photo,C2,+,00:00:30,-,-,-,-,-,5.6,800,0.5,0
+Photo,C2,+,00:00:30,-,-,-,-,-,8,800,0.5,0
 
 # Boucle de photos pendant la totalité
-# Début 1 minute après C2, fin 1 minute avant C3, une photo toutes les 5 secondes
-Boucle,C2,+,00:01:00,-,00:01:00,5,-,-,8,400,0.008,0
+# Début 10s après C2, fin 1min50s après C2 (dans la totalité), une photo toutes les 5 secondes
+Boucle,C2,+,00:00:10,+,00:01:50,5,-,-,8,400,0.008,0
 
 # Série de 10 photos réparties sur 2 minutes autour du maximum
 Interval,Max,-,00:01:00,+,00:01:00,10,-,-,11,200,0.004,1000
