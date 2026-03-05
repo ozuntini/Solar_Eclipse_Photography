@@ -24,7 +24,13 @@ except ImportError:
             pass
         
         GP_CAPTURE_IMAGE = 0
-        
+
+        @staticmethod
+        def check_result(result):
+            if isinstance(result, tuple):
+                return result[1]
+            return result
+
         @staticmethod
         def gp_camera_new():
             return "mock_camera"
@@ -119,14 +125,14 @@ class CameraController:
                 self.connected = True
                 return True
                 
-            self.camera = gp.gp_camera_new()
+            self.camera = gp.check_result(gp.gp_camera_new())
             
             # If specific address provided, configure port
             if address:
                 # TODO: Implement specific port configuration
                 pass
                 
-            gp.gp_camera_init(self.camera)
+            gp.check_result(gp.gp_camera_init(self.camera))
             self.connected = True
             
             # Cache camera model and capabilities
@@ -148,7 +154,7 @@ class CameraController:
         """Disconnect from camera cleanly."""
         if self.camera and GPHOTO2_AVAILABLE:
             try:
-                gp.gp_camera_exit(self.camera)
+                gp.check_result(gp.gp_camera_exit(self.camera))
                 self.logger.info(f"{self.name} disconnected")
             except Exception as e:
                 self.logger.error(f"Error disconnecting {self.name}: {e}")
@@ -236,7 +242,7 @@ class CameraController:
             
             # Apply configuration
             if GPHOTO2_AVAILABLE and success:
-                gp.gp_camera_set_config(self.camera, config)
+                gp.check_result(gp.gp_camera_set_config(self.camera, config))
             
             if success:
                 self.logger.info(f"{self.name} configured: ISO {settings.iso}, "
@@ -277,7 +283,7 @@ class CameraController:
                 return f"mock_image_{self.camera_id}_{int(time.time())}.jpg"
             
             # Perform capture
-            file_path = gp.gp_camera_capture(self.camera, gp.GP_CAPTURE_IMAGE)
+            file_path = gp.check_result(gp.gp_camera_capture(self.camera, gp.GP_CAPTURE_IMAGE))
             image_path = f"{file_path.folder}/{file_path.name}"
             
             self.logger.info(f"{self.name} captured: {image_path}")
@@ -320,9 +326,9 @@ class CameraController:
         """Get camera configuration, with caching."""
         if not GPHOTO2_AVAILABLE:
             return "mock_config"
-        
+
         try:
-            return gp.gp_camera_get_config(self.camera)
+            return gp.check_result(gp.gp_camera_get_config(self.camera))
         except Exception as e:
             self.logger.error(f"Error getting config for {self.name}: {e}")
             return None
@@ -339,8 +345,8 @@ class CameraController:
             return mock_values.get(widget_name)
         
         try:
-            widget = gp.gp_widget_get_child_by_name(config, widget_name)[1]
-            value = gp.gp_widget_get_value(widget)
+            widget = gp.check_result(gp.gp_widget_get_child_by_name(config, widget_name))
+            value = gp.check_result(gp.gp_widget_get_value(widget))
             
             if value_type == int:
                 # Strip non-digit characters (e.g., "85%" -> "85")
@@ -358,8 +364,8 @@ class CameraController:
             return True
         
         try:
-            widget = gp.gp_widget_get_child_by_name(config, widget_name)[1]
-            gp.gp_widget_set_value(widget, value)
+            widget = gp.check_result(gp.gp_widget_get_child_by_name(config, widget_name))
+            gp.check_result(gp.gp_widget_set_value(widget, value))
             return True
             
         except Exception as e:
