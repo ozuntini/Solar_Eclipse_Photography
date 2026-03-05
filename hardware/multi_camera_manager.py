@@ -58,7 +58,11 @@ class MultiCameraManager:
                 camera_list = [("Mock Canon Camera 1", "usb:001,002"),
                               ("Mock Canon Camera 2", "usb:001,003")]
             else:
-                camera_list = gp.gp_camera_autodetect()
+                # With standard python-gphoto2, gphoto2 objects often need error checking
+                if hasattr(gp, 'check_result'):
+                    camera_list = gp.check_result(gp.gp_camera_autodetect())
+                else:
+                    error, camera_list = gp.gp_camera_autodetect()
 
             discovered_cameras = []
             
@@ -371,4 +375,5 @@ class MultiCameraManager:
                 'status': status
             }
         
+
         return info
