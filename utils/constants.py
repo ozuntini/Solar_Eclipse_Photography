@@ -10,8 +10,9 @@ APP_VERSION = "3.0.0"
 APP_DESCRIPTION = "Python/GPhoto2 migration of Magic Lantern eclipse_OZ.lua script"
 
 # Default camera settings
+DEFAULT_CAPTURE_TARGET = 1  # "1=Memory card" for GPhoto2
 DEFAULT_ISO = 1600
-DEFAULT_APERTURE = "f/8"
+DEFAULT_APERTURE = "8"
 DEFAULT_SHUTTER = "1/125"
 DEFAULT_MLU_DELAY = 0  # milliseconds
 
@@ -45,6 +46,8 @@ CONFIG_FILE_EXTENSIONS = ['.txt', '.cfg', '.conf']
 IMAGE_FILE_EXTENSIONS = ['.jpg', '.jpeg', '.cr2', '.cr3', '.raw']
 
 # GPhoto2 mapping tables
+GPHOTO2_CAPTURETARGET_VALUES = ["0", "1"]  # "0=Internal memory" or "1=Memory card"
+
 GPHOTO2_ISO_VALUES = [
     "100", "125", "160", "200", "250", "320", "400", "500", "640", 
     "800", "1000", "1250", "1600", "2000", "2500", "3200", "4000", 
@@ -52,10 +55,10 @@ GPHOTO2_ISO_VALUES = [
 ]
 
 GPHOTO2_APERTURE_VALUES = [
-    "f/1.0", "f/1.1", "f/1.2", "f/1.4", "f/1.6", "f/1.8", "f/2.0", 
-    "f/2.2", "f/2.5", "f/2.8", "f/3.2", "f/3.5", "f/4.0", "f/4.5", 
-    "f/5.0", "f/5.6", "f/6.3", "f/7.1", "f/8", "f/9", "f/10", "f/11", 
-    "f/13", "f/14", "f/16", "f/18", "f/20", "f/22", "f/25", "f/29", "f/32"
+    "1.0", "1.1", "1.2", "1.4", "1.6", "1.8", "2.0", 
+    "2.2", "2.5", "2.8", "3.2", "3.5", "4.0", "4.5", 
+    "5.0", "5.6", "6.3", "7.1", "8", "9", "10", "11", 
+    "13", "14", "16", "18", "20", "22", "25", "29", "32"
 ]
 
 GPHOTO2_SHUTTER_VALUES = [

@@ -78,6 +78,7 @@ def setup_logging(level: str = "INFO",
         logger.addHandler(file_handler)
     
     # Log initial setup message
+    logger.info(f"{'='*120}")
     logger.info(f"Logging initialized at {level} level")
     if log_file:
         logger.info(f"Log file: {log_file}")

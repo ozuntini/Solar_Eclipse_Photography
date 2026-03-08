@@ -6,10 +6,14 @@
 # Config,C1,C2,Max,C3,C4,test_mode
 # C1 = Premier contact, C2 = Début totalité, Max = Maximum, C3 = Fin totalité, C4 = Dernier contact
 # test_mode: 1 = simulation, 0 = mode réel
-Config,14:41:05,16:02:49,16:03:53,16:04:58,17:31:03,1
+Config,18:35:00,18:36:30,18:37:00,18:37:30,18:39:00,0
 
 # Actions photographiques
 # Format: Type,reference_temps,operateur,temps,operateur_fin,temps_fin,intervalle_ou_nombre,_,_,ouverture,iso,vitesse,mlu
+
+# Photo unique 10s avant C1
+# Photo,C1,-,00:00:10,-,-,-,-,-,ouverture,iso,vitesse_obturation,delai_mlu
+Photo,C1,-,00:00:10,-,-,-,-,-,4,100,0.001,500
 
 # Photo unique 10 secondes avant le maximum
 # Photo,Max,-,00:00:10,-,-,-,-,-,ouverture,iso,vitesse_obturation,delai_mlu
@@ -20,7 +24,7 @@ Photo,C2,+,00:00:30,-,-,-,-,-,8,800,0.5,0
 
 # Boucle de photos pendant la totalité
 # Début 10s après C2, fin 1min50s après C2 (dans la totalité), une photo toutes les 5 secondes
-Boucle,C2,+,00:00:10,+,00:01:50,5,-,-,8,400,0.008,0
+Boucle,C2,+,00:00:10,+,00:01:00,5,-,-,8,400,0.008,0
 
 # Série de 10 photos réparties sur 2 minutes autour du maximum
 Interval,Max,-,00:01:00,+,00:01:00,10,-,-,11,200,0.004,1000

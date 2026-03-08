@@ -282,12 +282,12 @@ class MultiCameraManager:
                 continue
             
             # Check battery level
-            if status.battery_level is not None and status.battery_level < 20:
+            if status.battery_level is not None and status.battery_level < 99:  # Warn if battery is below 99%
                 self.logger.warning(f"{camera_name}: Low battery ({status.battery_level}%)")
                 # Don't fail for low battery, just warn
             
             # Check free space
-            if status.free_space_mb is not None and status.free_space_mb < 100:
+            if status.free_space_mb is not None and status.free_space_mb < 100000:  # Less than 100GB free
                 self.logger.warning(f"{camera_name}: Low storage space ({status.free_space_mb}MB)")
             
             # Log status

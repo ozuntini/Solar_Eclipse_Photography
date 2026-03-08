@@ -397,7 +397,7 @@ def run_lua_simulation(config_file: str, start_time_hms: Tuple[int, int, int] = 
 
 if __name__ == "__main__":
     # Test de base
-    config_file = "../SOLARECL.TXT"
+    config_file = "SOLARECL.TXT"
     results = run_lua_simulation(config_file)
     
     print("\n=== Résultats de la simulation Lua ===")

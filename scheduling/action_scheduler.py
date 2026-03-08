@@ -10,6 +10,8 @@ import time
 from datetime import datetime, time as time_obj
 from typing import Dict, Any
 
+from utils.constants import DEFAULT_CAPTURE_TARGET, DEFAULT_ISO, DEFAULT_APERTURE, DEFAULT_SHUTTER
+
 from .time_calculator import TimeCalculator
 from .action_types import create_action, ActionType
 from config.eclipse_config import ActionConfig, CameraSettings
@@ -357,12 +359,13 @@ class ActionScheduler:
         try:
             # Create camera settings from action config
             settings = CameraSettings(
-                iso=action.iso or 1600,  # Default ISO
-                aperture=format_gphoto2_aperture(action.aperture) if action.aperture else "f/8",
-                shutter=format_gphoto2_shutter(action.shutter_speed) if action.shutter_speed else "1/125"
+                capturetarget=DEFAULT_CAPTURE_TARGET,  # Default to memory card
+                iso=action.iso or DEFAULT_ISO,  # Default ISO
+                aperture=format_gphoto2_aperture(action.aperture) if action.aperture else format_gphoto2_aperture(DEFAULT_APERTURE),
+                shutter=format_gphoto2_shutter(action.shutter_speed) if action.shutter_speed else format_gphoto2_shutter(DEFAULT_SHUTTER)
             )
             
-            self.logger.info(f"Configuring cameras: ISO {settings.iso}, {settings.aperture}, {settings.shutter}")
+            self.logger.info(f"Configuring cameras: Capture Target {settings.capturetarget}, ISO {settings.iso}, Aperture {settings.aperture}, Shutter {settings.shutter}")
             
             # Apply configuration to all cameras
             config_results = self.camera_manager.configure_all(settings)

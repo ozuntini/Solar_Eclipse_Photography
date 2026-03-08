@@ -1,3 +1,10 @@
+## Changelog 07/03/2026
+Ajout d'un ligne de séparation à l'init du log
+Correction du bug sur le settings aperture retirer le f/
+Application du setting capturetarget pour stocker les images sur la MemoryCard
+Utilisation des constantes définie dans utils/constants.py
+
+
 ## Changelog 01/03/2026
 Récupération du code source suite à la migration en Python par l'IA
 Réorganisation de l'arborescence

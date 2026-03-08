@@ -185,10 +185,10 @@ class CameraController:
             battery = self._get_config_value(config, 'batterylevel', int)
             
             # Camera mode
-            mode = self._get_config_value(config, 'capturetarget', str) or "Unknown"
+            mode = self._get_config_value(config, 'autoexposuremode', str) or "Unknown"
             
             # Autofocus status
-            af_enabled = self._get_config_value(config, 'autofocus', str) == 'On'
+            af_enabled = self._get_config_value(config, 'focusmode', str) == 'On'
             
             # Free space (basic implementation)
             free_space = self._estimate_free_space()
@@ -234,7 +234,7 @@ class CameraController:
             
             # Configure aperture
             if settings.aperture:
-                success &= self._set_config_value(config, 'f-number', settings.aperture)
+                success &= self._set_config_value(config, 'aperture', settings.aperture)
             
             # Configure shutter speed
             if settings.shutter:
@@ -400,12 +400,12 @@ def format_gphoto2_aperture(f_number: float) -> str:
         f_number: Aperture f-number (e.g., 8.0)
         
     Returns:
-        GPhoto2-compatible aperture string (e.g., "f/8")
+        GPhoto2-compatible aperture string (e.g., "8")
     """
     if f_number.is_integer():
-        return f"f/{int(f_number)}"
+        return f"{int(f_number)}"
     else:
-        return f"f/{f_number:.1f}"
+        return f"{f_number:.1f}"
 
 
 def format_gphoto2_shutter(seconds: float) -> str:
