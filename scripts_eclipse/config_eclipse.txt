@@ -33,7 +33,7 @@ Interval,Max,-,00:01:00,+,00:01:00,10,-,-,11,200,0.004,1000
 Photo,C4,+,00:02:00,-,-,-,-,-,8,800,0.016,0
 
 # Notes sur les paramètres:
-# - Ouverture: f-number (ex: 4 = f/4, 5.6 = f/5.6)
-# - ISO: valeur ISO (ex: 1600, 800, 400)
-# - Vitesse: en secondes (ex: 1 = 1s, 0.008 = 1/125s, 0.004 = 1/250s)
+# - Ouverture: f-number (ex: 4 = f/4, 5.6 = f/5.6)                      -> verifier avec un gphoto2 --get-config=aperture que les valeurs sont compatibles avec votre boitier
+# - ISO: valeur ISO (ex: 1600, 800, 400)                                -> verifier avec un gphoto2 --get-config=iso que les valeurs sont compatibles avec votre boitier
+# - Vitesse: en secondes (ex: 1 = 1s, 0.008 = 1/125s, 0.004 = 1/250s)   -> verifier avec un gphoto2 --get-config=shutterspeed que les valeurs sont compatibles avec votre boitier
 # - MLU: délai Mirror Lock-Up en millisecondes (0 = désactivé)

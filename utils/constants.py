@@ -10,7 +10,7 @@ APP_VERSION = "3.0.0"
 APP_DESCRIPTION = "Python/GPhoto2 migration of Magic Lantern eclipse_OZ.lua script"
 
 # Default camera settings
-DEFAULT_CAPTURE_TARGET = 1  # "1=Memory card" for GPhoto2
+DEFAULT_CAPTURE_TARGET = "Memory card"  # "Memory card" or "Internal RAM"for GPhoto2
 DEFAULT_ISO = 1600
 DEFAULT_APERTURE = "8"
 DEFAULT_SHUTTER = "1/125"
@@ -62,7 +62,7 @@ GPHOTO2_APERTURE_VALUES = [
 ]
 
 GPHOTO2_SHUTTER_VALUES = [
-    "30", "25", "20", "15", "13", "10", "8", "6", "5", "4", "3.2", 
+    "30", "25", "20", "15", "13", "10.3", "8", "6.3", "5", "4", "3.2", 
     "2.5", "2", "1.6", "1.3", "1", "0.8", "0.6", "0.5", "0.4", "0.3", 
     "1/4", "1/5", "1/6", "1/8", "1/10", "1/13", "1/15", "1/20", "1/25", 
     "1/30", "1/40", "1/50", "1/60", "1/80", "1/100", "1/125", "1/160", 

@@ -228,6 +228,10 @@ class CameraController:
             config = self._get_config()
             success = True
             
+            # Configure capture target (memory card or PC)
+            if settings.capturetarget:
+                success &= self._set_config_value(config, 'capturetarget', str(settings.capturetarget))  
+
             # Configure ISO
             if settings.iso:
                 success &= self._set_config_value(config, 'iso', str(settings.iso))
@@ -245,8 +249,8 @@ class CameraController:
                 gp.check_result(gp.gp_camera_set_config(self.camera, config))
             
             if success:
-                self.logger.info(f"{self.name} configured: ISO {settings.iso}, "
-                               f"f/{settings.aperture}, {settings.shutter}")
+                self.logger.info(f"{self.name} configured: capture target {settings.capturetarget}, ISO {settings.iso}, "
+                               f"f/{settings.aperture}, {settings.shutter}s")
             else:
                 self.logger.warning(f"{self.name}: Some settings may not have been applied")
             
@@ -421,7 +425,7 @@ def format_gphoto2_shutter(seconds: float) -> str:
     if seconds <= 0:
         raise ValueError(f"Shutter speed must be positive, got {seconds}")
     
-    if seconds >= 1:
+    if seconds > 0.25:  # Longer than 1/4 second, use seconds format
         if seconds.is_integer():
             return str(int(seconds))
         else:

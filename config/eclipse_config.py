@@ -60,7 +60,7 @@ class VerificationConfig:
 @dataclass
 class CameraSettings:
     """Camera configuration settings for GPhoto2."""
-    capturetarget: int  # "1=Memory card" or "0=Internal memory"
+    capturetarget: str  # "1=Memory card" or "0=Internal memory"
     iso: int            # ISO value (e.g., 100, 200, 400, etc.)
     aperture: str       # "2.8", "8", "11", etc. (GPhoto2 format)
     shutter: str        # "1/125", "2", etc. (GPhoto2 format)

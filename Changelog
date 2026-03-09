@@ -1,9 +1,17 @@
+## Changelog 09/03/2026
+Correction de la vérification de Shutterspeed. Seconde > 1/4 >= Fraction
+Correction des constantes pour Shutterspeed et ISO
+Ajout de conseils de vérifications dans le script config_eclipse.txt
+
+## Changelog 08/03/2026
+Application du setting capturetarget pour stocker les images sur la MemoryCard
+Utilisation des constantes définie dans utils/constants.py
+Création du répertoire scripts_eclipse pour ranger les scripts
+Création d'un générateur de script a améliorer
+
 ## Changelog 07/03/2026
 Ajout d'un ligne de séparation à l'init du log
 Correction du bug sur le settings aperture retirer le f/
-Application du setting capturetarget pour stocker les images sur la MemoryCard
-Utilisation des constantes définie dans utils/constants.py
-
 
 ## Changelog 01/03/2026
 Récupération du code source suite à la migration en Python par l'IA
