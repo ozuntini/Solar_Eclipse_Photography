@@ -1,3 +1,7 @@
+## Changelog 10/03/2026
+Création des scripts de tests
+Test des modes Photo unique, Boucle et Interval
+
 ## Changelog 09/03/2026
 Correction de la vérification de Shutterspeed. Seconde > 1/4 >= Fraction
 Correction des constantes pour Shutterspeed et ISO

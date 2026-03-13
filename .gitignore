@@ -1,1 +1,6 @@
 log/
+__pycache__/
+config/__pycache__/
+hardware/__pycache__/
+scheduling/__pycache__/
+utils/__pycache__/

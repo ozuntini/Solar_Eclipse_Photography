@@ -1,0 +1,21 @@
+# Exemple de configuration d'éclipse
+# Basé sur l'éclipse solaire totale du 8 avril 2024 (exemple)
+# Format compatible avec le script Magic Lantern original
+
+# Ligne de configuration principale
+# Config,C1,C2,Max,C3,C4,test_mode
+# C1 = Premier contact, C2 = Début totalité, Max = Maximum, C3 = Fin totalité, C4 = Dernier contact
+# test_mode: 1 = simulation, 0 = mode réel
+Config,23:15:00,23:16:30,23:17:00,23:17:30,23:19:00,0
+
+# Actions photographiques
+# Format: Type,reference_temps,operateur,temps,operateur_fin,temps_fin,intervalle_ou_nombre,_,_,ouverture,iso,vitesse,mlu
+
+# Série de 10 photos réparties sur 2 minutes autour du maximum
+Interval,C2,-,00:01:00,+,00:01:00,10,-,-,8,200,0.004,0
+
+# Notes sur les paramètres:
+# - Ouverture: f-number (ex: 4 = f/4, 5.6 = f/5.6)                      -> verifier avec un gphoto2 --get-config=aperture que les valeurs sont compatibles avec votre boitier
+# - ISO: valeur ISO (ex: 1600, 800, 400)                                -> verifier avec un gphoto2 --get-config=iso que les valeurs sont compatibles avec votre boitier
+# - Vitesse: en secondes (ex: 1 = 1s, 0.008 = 1/125s, 0.004 = 1/250s)   -> verifier avec un gphoto2 --get-config=shutterspeed que les valeurs sont compatibles avec votre boitier
+# - MLU: délai Mirror Lock-Up en millisecondes (0 = désactivé)
