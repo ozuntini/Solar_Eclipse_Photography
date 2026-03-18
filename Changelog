@@ -1,3 +1,8 @@
+## Changelog 15/03/2026
+Création d'un script bash de lancement, SEP_launch.sh 
+Gestion de la vitesse compatible avec la notation du boitier. en s de 30s à 0.3s et en 1/s de 1/4s à 1/4000s
+Suppression du test_mode dans le script. Il est remplacé par le --test-mode à l'appel du programme main.
+
 ## Changelog 10/03/2026
 Création des scripts de tests
 Test des modes Photo unique, Boucle et Interval

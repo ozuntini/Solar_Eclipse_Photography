@@ -3,8 +3,7 @@
 # Ligne de configuration principale
 # Config,C1,C2,Max,C3,C4,test_mode
 # C1 = Premier contact, C2 = Début totalité, Max = Maximum, C3 = Fin totalité, C4 = Dernier contact
-# test_mode: 1 = simulation, 0 = mode réel
-Config,19:03:00,23:36:30,23:37:00,23:37:30,23:39:00,1
+Config,17:30:00,17:31:30,17:32:00,17:33:00,17:34:30
 
 #  Autoexposuremode,AF,Bat,SD
 #Verif,3,0,20,4000
@@ -14,8 +13,7 @@ Config,19:03:00,23:36:30,23:37:00,23:37:30,23:39:00,1
 
 # Photo unique 10s avant C1
 # Photo,C1,-,00:00:10,-,-,-,-,-,ouverture,iso,vitesse_obturation,delai_mlu
-Photo,C1,-,00:00:10,-,-,-,-,-,6.3,1600,0.003125,0
-
+Photo,C1,-,00:00:10,-,-,-,-,-,6.3,1600,1/250,0
 
 # Notes sur les paramètres:
 # - Ouverture: f-number (ex: 4 = f/4, 5.6 = f/5.6)

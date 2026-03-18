@@ -160,12 +160,12 @@ class ConfigParser:
         Parse Config line with eclipse contact timings.
         
         Expected format:
-        Config,C1_time,C2_time,Max_time,C3_time,C4_time,test_mode
+        Config,C1_time,C2_time,Max_time,C3_time,C4_time
         
         Example:
         Config,14:41:05,16:02:49,16:03:53,16:04:58,17:31:03,1
         """
-        if len(fields) < 7:
+        if len(fields) < 6:
             raise ConfigParserError(f"Config line requires 7 fields, got {len(fields)}", line_num)
         
         try:
@@ -174,7 +174,6 @@ class ConfigParser:
             max_time = self._parse_time_string(fields[3], line_num)
             c3 = self._parse_time_string(fields[4], line_num)
             c4 = self._parse_time_string(fields[5], line_num)
-            test_mode = fields[6].strip() == '1'
             
             # Validate eclipse timing sequence (basic check)
             times = [c1, c2, max_time, c3, c4]
@@ -182,7 +181,7 @@ class ConfigParser:
                 if self._time_to_seconds(times[i]) >= self._time_to_seconds(times[i + 1]):
                     self.logger.warning(f"Line {line_num}: Eclipse times may not be in chronological order")
             
-            return EclipseTimings(c1, c2, max_time, c3, c4, test_mode)
+            return EclipseTimings(c1, c2, max_time, c3, c4)
             
         except (ValueError, IndexError) as e:
             raise ConfigParserError(f"Error parsing Config line: {e}", line_num)
@@ -265,7 +264,7 @@ class ConfigParser:
             # Camera settings at detected offset
             aperture = float(fields[camera_offset]) if fields[camera_offset] and fields[camera_offset] != '-' else None
             iso = int(float(fields[camera_offset + 1])) if fields[camera_offset + 1] and fields[camera_offset + 1] != '-' else None
-            shutter_speed = float(fields[camera_offset + 2]) if fields[camera_offset + 2] and fields[camera_offset + 2] != '-' else None
+            shutter_speed = str(fields[camera_offset + 2]) if fields[camera_offset + 2] and fields[camera_offset + 2] != '-' else None
             mlu_delay = int(float(fields[camera_offset + 3])) if fields[camera_offset + 3] and fields[camera_offset + 3] != '-' else 0
             
             # Validate time reference

@@ -18,7 +18,6 @@ class EclipseTimings:
     max: time  # Maximum (Greatest eclipse)
     c3: time  # Fin totalité (Third contact - end of totality)
     c4: time  # Dernier contact (Fourth contact)
-    test_mode: bool = False
 
 
 @dataclass

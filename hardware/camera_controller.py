@@ -412,7 +412,7 @@ def format_gphoto2_aperture(f_number: float) -> str:
         return f"{f_number:.1f}"
 
 
-def format_gphoto2_shutter(seconds: float) -> str:
+def format_gphoto2_shutter(seconds: str) -> str:
     """
     Format shutter speed for GPhoto2.
     
@@ -422,18 +422,22 @@ def format_gphoto2_shutter(seconds: float) -> str:
     Returns:
         GPhoto2-compatible shutter string (e.g., "1/125", "2")
     """
-    if seconds <= 0:
-        raise ValueError(f"Shutter speed must be positive, got {seconds}")
-    
-    if seconds > 0.25:  # Longer than 1/4 second, use seconds format
-        if seconds.is_integer():
-            return str(int(seconds))
+    if seconds.isnumeric():
+        seconds = float(seconds)
+        if seconds <= 0:
+            raise ValueError(f"Shutter speed must be positive, got {seconds}")
         else:
-            return f"{seconds:.1f}"
+            if seconds > 0.25:  # Longer than 1/4 second, use seconds format
+                if seconds.is_integer():
+                    return str(int(seconds))
+                else:
+                    return f"{seconds:.1f}"
+            else:
+            # Convert to fraction
+                fraction = 1.0 / seconds
+                if fraction == int(fraction):
+                    return f"1/{int(fraction)}"
+                else:
+                    return f"1/{fraction:.0f}"
     else:
-        # Convert to fraction
-        fraction = 1.0 / seconds
-        if fraction == int(fraction):
-            return f"1/{int(fraction)}"
-        else:
-            return f"1/{fraction:.0f}"
+        return seconds  # Assume it's already a valid string format for GPhoto2

@@ -6,7 +6,7 @@ Defines constants and mappings used throughout the application.
 
 # Application metadata
 APP_NAME = "Eclipse Photography Controller"
-APP_VERSION = "3.0.0"
+APP_VERSION = "3.0.1"
 APP_DESCRIPTION = "Python/GPhoto2 migration of Magic Lantern eclipse_OZ.lua script"
 
 # Default camera settings

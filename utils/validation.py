@@ -13,7 +13,7 @@ from typing import Dict, List, Tuple, Optional
 
 from config.eclipse_config import SystemConfig, VerificationConfig, CameraStatus
 from hardware.multi_camera_manager import MultiCameraManager
-from .constants import MIN_BATTERY_LEVEL, MIN_FREE_SPACE_MB, ERROR_MESSAGES
+from .constants import GPHOTO2_SHUTTER_VALUES, MIN_BATTERY_LEVEL, MIN_FREE_SPACE_MB
 
 
 class ValidationError(Exception):
@@ -363,7 +363,7 @@ class SystemValidator:
                 if action.aperture and (action.aperture < 1.0 or action.aperture > 32):
                     self.logger.warning(f"Action {i + 1}: Unusual aperture f/{action.aperture}")
                 
-                if action.shutter_speed and (action.shutter_speed < 0.0001 or action.shutter_speed > 30):
+                if action.shutter_speed and (action.shutter_speed not in GPHOTO2_SHUTTER_VALUES):
                     self.logger.warning(f"Action {i + 1}: Unusual shutter speed {action.shutter_speed}s")
             
             return True
