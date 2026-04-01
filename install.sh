@@ -32,6 +32,12 @@ pip install -r requirements.txt
 # USB configuration for multi-cameras
 echo "Configuring USB rules for Canon cameras..."
 echo 'SUBSYSTEM=="usb", ATTR{idVendor}=="04a9", MODE="0666"' | sudo tee /etc/udev/rules.d/99-canon-cameras.rules
+
+# USB configuration for Gemini flatpanel
+echo "Configuring USB rules for Gemini flatpanel..."
+echo 'ACTION=="add", SUBSYSTEM=="tty", SUBSYSTEMS=="usb", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", SYMLINK+="gflatpanel", MODE="0666", RUN+="/usr/bin/stty -F /dev/%k -hupcl"' | sudo tee /etc/udev/rules.d/99-gflatpanel.rules
+
+# udevadm reload and trigger to apply new rules
 sudo udevadm control --reload-rules
 sudo udevadm trigger
 

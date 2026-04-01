@@ -19,3 +19,6 @@ colorlog>=6.7.0
 black>=22.0.0
 flake8>=5.0.0
 mypy>=1.0.0
+
+# Serial communication for hardware control
+pyserial>=3.5.0
