@@ -1,3 +1,20 @@
+#!/usr/bin/env python3
+"""
+Module pour contrôler un GeminiAutoFlatPanel via USB/Serial.
+Ce module fournit une classe `GeminiAutoFlatPanel`
+avec des méthodes pour ouvrir/fermer le couvercle du panneau,récupérer l'état du périphérique et effectuer des vérifications de santé.
+Les commandes et les réponses sont définies dans la classe `Commands`, 
+et les états du couvercle sont représentés par l'énumération `CoverState`.
+
+Usage:
+    panel = GeminiAutoFlatPanel(port='/dev/ttyUSB0', baudrate=9600, timeout=1)
+    if panel.connect():
+        panel.open_cover()
+        status = panel.get_device_status()
+        panel.close_cover()
+        panel.disconnect()
+"""
+
 from enum import Enum
 import serial
 import time

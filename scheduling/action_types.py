@@ -15,6 +15,7 @@ class ActionType(Enum):
     PHOTO = "Photo"
     LOOP = "Boucle"
     INTERVAL = "Interval"
+    FILTER = "Filter"       # Action pour contrôler le filtre solaire (ajouté pour la gestion du GeminiAutoFlatPanel)
 
 
 class BaseAction(ABC):
@@ -34,6 +35,27 @@ class BaseAction(ABC):
         """Get human-readable description of the action."""
         pass
 
+class FilterAction(BaseAction):
+    """Action to control the GeminiAutoFlatPanel filter."""
+    
+    def validate(self) -> bool:
+        """Validate filter action configuration."""
+        if self.config.action_type != ActionType.FILTER.value:
+            return False
+        
+        # For filter actions, we need a valid start_time and time_ref
+        return (self.config.start_time is not None and 
+                self.config.time_ref is not None and 
+                self.config.start_operator is not None)
+    
+    def get_description(self) -> str:
+        """Get description of filter action."""
+        if self.config.time_ref == '-':
+            time_desc = f"at {self.config.start_time}"
+        else:
+            time_desc = f"at {self.config.time_ref} {self.config.start_operator} {self.config.start_time}"
+        
+        return f"Filter action {time_desc} - {'Open' if self.config.cover == 1 else 'Close'}"
 
 class PhotoAction(BaseAction):
     """Single photo action at a specific time."""
@@ -168,7 +190,8 @@ def create_action(config: ActionConfig) -> BaseAction:
     action_map = {
         ActionType.PHOTO.value: PhotoAction,
         ActionType.LOOP.value: LoopAction,
-        ActionType.INTERVAL.value: IntervalAction
+        ActionType.INTERVAL.value: IntervalAction,
+        ActionType.FILTER.value: FilterAction
     }
     
     action_class = action_map.get(config.action_type)

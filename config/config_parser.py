@@ -84,7 +84,7 @@ class ConfigParser:
                             verification = self._parse_verification(fields, line_num)
                         elif action_type == 'Config':
                             eclipse_timings = self._parse_config(fields, line_num)
-                        elif action_type in ['Photo', 'Boucle', 'Interval']:
+                        elif action_type in ['Photo', 'Boucle', 'Interval', 'Filter']:
                             actions.append(self._parse_action(fields, line_num))
                         else:
                             self.logger.warning(f"Line {line_num}: Unknown action type '{action_type}'")
@@ -252,7 +252,12 @@ class ConfigParser:
                 camera_offset = 7
             else:
                 raise ConfigParserError(
-                    f"{action_type} line requires at least 11 fields, got {len(fields)}", line_num)
+                    f"{action_type} line requires at least 11 fields, got {len(fields)}", line_num)        
+        elif action_type == 'Filter':
+            if len(fields) < 10:
+                raise ConfigParserError(
+                    f"Filter line requires at least 10 fields, got {len(fields)}", line_num)
+            camera_offset = 9
         else:
             raise ConfigParserError(f"Unknown action type '{action_type}'", line_num)
         
@@ -261,11 +266,14 @@ class ConfigParser:
             start_operator = fields[2]
             start_time = self._parse_time_string(fields[3], line_num)
             
-            # Camera settings at detected offset
-            aperture = float(fields[camera_offset]) if fields[camera_offset] and fields[camera_offset] != '-' else None
-            iso = int(float(fields[camera_offset + 1])) if fields[camera_offset + 1] and fields[camera_offset + 1] != '-' else None
-            shutter_speed = str(fields[camera_offset + 2]) if fields[camera_offset + 2] and fields[camera_offset + 2] != '-' else None
-            mlu_delay = int(float(fields[camera_offset + 3])) if fields[camera_offset + 3] and fields[camera_offset + 3] != '-' else 0
+            if action_type == 'Filter':
+                cover = int(fields[camera_offset]) if fields[camera_offset] and fields[camera_offset] != '-' else None
+            else:
+                # Camera settings at detected offset
+                aperture = float(fields[camera_offset]) if fields[camera_offset] and fields[camera_offset] != '-' else None
+                iso = int(float(fields[camera_offset + 1])) if fields[camera_offset + 1] and fields[camera_offset + 1] != '-' else None
+                shutter_speed = str(fields[camera_offset + 2]) if fields[camera_offset + 2] and fields[camera_offset + 2] != '-' else None
+                mlu_delay = int(float(fields[camera_offset + 3])) if fields[camera_offset + 3] and fields[camera_offset + 3] != '-' else 0
             
             # Validate time reference
             if time_ref not in ['C1', 'C2', 'Max', 'C3', 'C4', '-']:
@@ -285,6 +293,15 @@ class ConfigParser:
                     iso=iso,
                     shutter_speed=shutter_speed,
                     mlu_delay=mlu_delay
+                )
+            
+            elif action_type == 'Filter':
+                return ActionConfig(
+                    action_type=action_type,
+                    time_ref=time_ref,
+                    start_operator=start_operator,
+                    start_time=start_time,
+                    cover=cover,  # Using aperture field to indicate filter state (1=open, 0=close)
                 )
             
             elif action_type in ['Boucle', 'Interval']:

@@ -10,14 +10,14 @@ import time
 from datetime import datetime, time as time_obj
 from typing import Dict, Any
 
-from utils.constants import DEFAULT_CAPTURE_TARGET, DEFAULT_ISO, DEFAULT_APERTURE, DEFAULT_SHUTTER
+from utils.constants import DEFAULT_CAPTURE_TARGET, DEFAULT_ISO, DEFAULT_APERTURE, DEFAULT_SHUTTER, DEFAULT_SERIAL_PORT, DEFAULT_BAUD_RATE, DEFAULT_TIMEOUT
 
 from .time_calculator import TimeCalculator
 from .action_types import create_action, ActionType
 from config.eclipse_config import ActionConfig, CameraSettings
 from hardware.multi_camera_manager import MultiCameraManager
 from hardware.camera_controller import format_gphoto2_aperture, format_gphoto2_shutter
-
+from hardware.filter_controller import GeminiAutoFlatPanel, CoverState
 
 class ActionScheduler:
     """
@@ -71,6 +71,8 @@ class ActionScheduler:
                 success = self.execute_loop_action(action_config)
             elif action.action_type == ActionType.INTERVAL:
                 success = self.execute_interval_action(action_config)
+            elif action.action_type == ActionType.FILTER:
+                success = self.execute_filter_action(action_config)
             else:
                 self.logger.error(f"Unknown action type: {action_config.action_type}")
                 success = False
@@ -89,6 +91,61 @@ class ActionScheduler:
             self.execution_errors += 1
             return False
     
+    def execute_filter_action(self, action: ActionConfig) -> bool:
+        """
+        Execute a filter action to open or close the flat panel.
+        
+        Args:
+            action: Action configuration for filter control
+        Returns:
+            True if successful, False otherwise
+        """
+        # Créer une instance
+        panel = GeminiAutoFlatPanel(port=DEFAULT_SERIAL_PORT, baudrate=DEFAULT_BAUD_RATE, timeout=DEFAULT_TIMEOUT)
+        try:
+            # Calculate trigger time
+            trigger_time = self._calculate_action_time(action, 'start')
+
+            self.logger.info(f"Filter action scheduled for {trigger_time}")
+
+            # Wait until trigger time
+            self.time_calculator.wait_until(trigger_time)
+
+            # Se connecter
+            if panel.connect():
+                # Execute filter action
+                if action.cover == 1:  # Using cover field to indicate filter state (1=open, 0=close)
+                    self.logger.info("Opening flat panel...")
+                    cover = panel.open_cover()
+                    if cover == CoverState.OPEN:
+                        self.logger.info("Flat panel opened successfully")
+                        return True
+                    else:
+                        self.logger.error("Failed to open filter panel")
+                        return False
+                elif action.cover == 0:  # Using cover field to indicate filter state (1=open, 0=close)
+                    self.logger.info("Closing flat panel...")
+                    cover = panel.close_cover()
+                    if cover == CoverState.CLOSED:
+                        self.logger.info("Flat panel closed successfully")
+                        return True
+                    else:
+                        self.logger.error("Failed to close filter panel")
+                        return False
+                else:
+                    self.logger.error(f"Unknown filter action: {action.cover}")
+                    return False
+            else:
+                self.logger.error("Failed to connect to filter panel")
+                return False
+
+        except Exception as e:
+            self.logger.error(f"Error executing filter action: {e}", exc_info=True)
+            return False        
+        finally:
+           # Toujours fermer la connexion
+            panel.disconnect()
+
     def execute_photo_action(self, action: ActionConfig) -> bool:
         """
         Execute a single photo action.

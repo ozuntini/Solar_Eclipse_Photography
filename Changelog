@@ -1,3 +1,13 @@
+## Changelog 01/04/2026
+Nettoyage de la racine pour supprimer les fichiers de test lua
+Mise à jour du install.sh pour ajouter la règle udev pour le flatpanel
+Tests avec le script config_photo_filter.txt
+
+## Changelog 31/03/2026
+Ajout du filter_controller.py dans hardware
+Mise à jour du requirements.txt pour charger pyserial
+Modification des différents modules pour gérer le filtre
+
 ## Changelog 15/03/2026
 Création d'un script bash de lancement, SEP_launch.sh 
 Gestion de la vitesse compatible avec la notation du boitier. en s de 30s à 0.3s et en 1/s de 1/4s à 1/4000s

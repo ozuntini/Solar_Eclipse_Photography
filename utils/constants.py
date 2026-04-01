@@ -16,12 +16,17 @@ DEFAULT_APERTURE = "8"
 DEFAULT_SHUTTER = "1/125"
 DEFAULT_MLU_DELAY = 0  # milliseconds
 
+# Default serial port settings for GeminiAutoFlatPanel control
+DEFAULT_SERIAL_PORT = "/dev/gflatpanel"
+DEFAULT_BAUD_RATE = 9600
+DEFAULT_TIMEOUT = 1  # seconds
+
 # Time reference constants
 TIME_REFERENCES = ['C1', 'C2', 'Max', 'C3', 'C4', '-']
 TIME_OPERATORS = ['+', '-']
 
 # Action types
-ACTION_TYPES = ['Photo', 'Boucle', 'Interval']
+ACTION_TYPES = ['Photo', 'Boucle', 'Interval', 'Filter']  # Added 'Filter' for GeminiAutoFlatPanel control
 
 # Camera validation thresholds
 MIN_BATTERY_LEVEL = 20  # percent
@@ -95,5 +100,6 @@ CONFIG_FIELD_COUNTS = {
     'Photo': 13,    # Photo,time_ref,op,time,_,_,_,_,_,aperture,iso,shutter,mlu
     'Boucle': 13,   # Boucle,time_ref,op,start,op,end,interval,_,_,aperture,iso,shutter,mlu
     'Interval': 13, # Interval,time_ref,op,start,op,end,count,_,_,aperture,iso,shutter,mlu
-    'Verif': 5      # Verif,battery,storage,mode,af (simplified)
+    'Verif': 5,      # Verif,battery,storage,mode,af (simplified)
+    'Filter': 10     # Filter,time_ref,op,time,_,_,_,_,_,aperture (using aperture field to indicate filter state)
 }

@@ -23,7 +23,7 @@ class EclipseTimings:
 @dataclass
 class ActionConfig:
     """Configuration for a single photographic action."""
-    action_type: str  # 'Photo', 'Boucle', 'Interval'
+    action_type: str  # 'Photo', 'Boucle', 'Interval', 'Filter'
     time_ref: str     # 'C1', 'C2', 'Max', 'C3', 'C4', '-' (absolute)
     start_operator: str  # '+', '-'
     start_time: time
@@ -35,6 +35,7 @@ class ActionConfig:
     shutter_speed: Optional[float] = None # seconds (e.g., 0.008 for 1/125)
     mlu_delay: int = 0                    # Mirror lockup delay in milliseconds
     camera_ids: Optional[List[int]] = None # Specific camera IDs (future use)
+    cover: Optional[int] = None           # For Filter action: 1=open, 0=close
 
     def __post_init__(self):
         """Validate action configuration after initialization."""
