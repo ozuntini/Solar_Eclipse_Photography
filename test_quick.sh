@@ -30,15 +30,15 @@ except ImportError as e:
 # Test 2: Validation du fichier de configuration
 echo ""
 echo "Test 2: Validation du fichier de configuration..."
-if [ ! -f "config_eclipse.txt" ]; then
-    echo "❌ Fichier config_eclipse.txt manquant"
+if [ ! -f "scripts_eclipse/config_eclipse.txt" ]; then
+    echo "❌ Fichier scripts_eclipse/config_eclipse.txt manquant"
     exit 1
 fi
 
 python3 -c "
 from config import parse_config_file
 try:
-    config = parse_config_file('config_eclipse.txt')
+    config = parse_config_file('scripts_eclipse/config_eclipse.txt')
     print(f'✅ Configuration valide: {len(config.actions)} actions')
     
     # Afficher les détails de la configuration

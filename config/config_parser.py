@@ -163,10 +163,10 @@ class ConfigParser:
         Config,C1_time,C2_time,Max_time,C3_time,C4_time
         
         Example:
-        Config,14:41:05,16:02:49,16:03:53,16:04:58,17:31:03,1
+        Config,14:41:05,16:02:49,16:03:53,16:04:58,17:31:03
         """
         if len(fields) < 6:
-            raise ConfigParserError(f"Config line requires 7 fields, got {len(fields)}", line_num)
+            raise ConfigParserError(f"Config line requires 6 fields, got {len(fields)}", line_num)
         
         try:
             c1 = self._parse_time_string(fields[1], line_num)
@@ -222,42 +222,35 @@ class ConfigParser:
     
     def _parse_action(self, fields: List[str], line_num: int) -> ActionConfig:
         """
-        Parse action line (Photo, Boucle, or Interval).
+        Parse action line (Photo, Boucle, Interval, Filter).
         
-        Supports two formats:
-        
-        Original SOLARECL.TXT format (11 fields for Boucle/Interval):
+        Extended format:
+            Photo,time_ref,start_op,start_time,aperture,iso,shutter,mlu
             Boucle,time_ref,start_op,start_time,end_op,end_time,interval,aperture,iso,shutter,mlu
             Interval,time_ref,start_op,start_time,end_op,end_time,count,aperture,iso,shutter,mlu
-        
-        Extended format (13 fields, with placeholder dashes):
-            Photo,time_ref,start_op,start_time,_,_,_,_,_,aperture,iso,shutter,mlu
-            Boucle,time_ref,start_op,start_time,end_op,end_time,interval,_,_,aperture,iso,shutter,mlu
-            Interval,time_ref,start_op,start_time,end_op,end_time,count,_,_,aperture,iso,shutter,mlu
+            Filter,time_ref,start_op,start_time,cover #1=open, 0=close
         """
         action_type = fields[0]
         
         # Determine camera settings offset based on action type and field count
         if action_type == 'Photo':
-            if len(fields) < 13:
+            if len(fields) < 8:
                 raise ConfigParserError(
-                    f"Photo line requires at least 13 fields, got {len(fields)}", line_num)
-            camera_offset = 9
+                    f"Photo line requires at least 8 fields, got {len(fields)}", line_num)
+            camera_offset = 4           # Aperture at index 4, ISO at 5, Shutter at 6, MLU at 7
+
         elif action_type in ['Boucle', 'Interval']:
-            if len(fields) >= 13:
-                # Extended format with placeholder dashes at positions 7 and 8
-                camera_offset = 9
-            elif len(fields) >= 11:
-                # Original SOLARECL.TXT format (no placeholders)
-                camera_offset = 7
-            else:
+            if len(fields) < 11:
                 raise ConfigParserError(
-                    f"{action_type} line requires at least 11 fields, got {len(fields)}", line_num)        
+                    f"{action_type} line requires at least 11 fields, got {len(fields)}", line_num)
+            camera_offset = 7           # Aperture at index 7, ISO at 8, Shutter at 9, MLU at 10
+            
         elif action_type == 'Filter':
-            if len(fields) < 10:
+            if len(fields) < 5:
                 raise ConfigParserError(
-                    f"Filter line requires at least 10 fields, got {len(fields)}", line_num)
-            camera_offset = 9
+                    f"Filter line requires at least 5 fields, got {len(fields)}", line_num)
+            camera_offset = 4           # Cover state at index 4
+
         else:
             raise ConfigParserError(f"Unknown action type '{action_type}'", line_num)
         

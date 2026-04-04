@@ -53,7 +53,8 @@ python/
 ├── hardware/                      # Contrôle matériel
 │   ├── __init__.py
 │   ├── camera_controller.py       # Interface GPhoto2
-│   └── multi_camera_manager.py    # Gestion multi-caméras
+│   ├── multi_camera_manager.py    # Gestion multi-caméras
+│   └── filter_controller.py       # Contrôle panneau Gemini AutoFlatPanel  
 ├── scheduling/                    # Planification et exécution
 │   ├── __init__.py
 │   ├── time_calculator.py         # Calculs temporels
@@ -97,6 +98,7 @@ python/
   - `MultiCameraManager`: Gestion de plusieurs appareils
   - `CameraSettings`: Configuration caméra (ISO, ouverture, vitesse)
   - `CameraStatus`: État actuel d'un appareil
+  - `GeminiAutoFlatPanel` : Contrôle Gemini Flat Panel via USB/Serial
 
 #### Module `scheduling`
 - **Purpose**: Planification et exécution des actions photographiques
@@ -208,6 +210,7 @@ Verif,3,0,50,2000
 Photo,C1,-,0,5,0,-,-,-,8,100,4,0
 Boucle,C2,-,0,1,0,+,0,0,30,10,8,200,0.002,0
 Interval,Max,+,0,0,30,+,0,1,0,20,5.6,800,0.001,500
+Filter,C3,-,00:01:00,_,_,_,0
 ```
 
 ## Modules et API
@@ -411,13 +414,6 @@ python -m pytest tests/test_lua_python_comparison.py -v
 # Tests avec couverture
 python -m pytest tests/ --cov=config --cov=hardware --cov=scheduling --cov=utils
 
-# Tests de régression (script dédié)
-./run_regression_tests.sh
-
-# Tests comparatifs interactifs
-python run_comparison_tests.py
-```
-
 ### Tests unitaires par module
 
 #### test_config_parser.py
@@ -501,42 +497,11 @@ python run_comparison_tests.py
 
 #### Dépendances externes
 - ❌ Nécessite GPhoto2 installé système
-- ❌ Pas de support Magic Lantern natif
 - ❌ Limité aux appareils compatibles GPhoto2
 
 #### Performance
 - ⚠️ Overhead Python vs Lua sur timing critique
 - ⚠️ Gestion mémoire différente pour sessions longues
-
-## Validation de cohérence Lua/Python
-
-### Méthodologie de validation
-
-La validation de cohérence entre les versions Lua et Python utilise une approche multi-niveaux :
-
-#### 1. Simulateur Lua (`lua_simulator.py`)
-
-Le simulateur reproduit fidèlement le comportement du script Lua original sans nécessiter Magic Lantern :
-
-```python
-class LuaSimulator:
-    """Simule l'environnement Lua et les fonctions Magic Lantern"""
-    
-    def __init__(self, config_file: str, test_mode: bool = True):
-        # Simulation variables Magic Lantern
-        self.camera = {'mode': '3', 'model': 'Canon EOS 6D'}
-        self.battery = {'level': 95}
-        self.card_free_space = 8000
-    
-    def read_script(self, directory: str, filename: str) -> List[List[str]]:
-        """Reproduction exacte de read_script() Lua"""
-    
-    def convert_second(self, hrs: int, mins: int, secs: int) -> int:
-        """Reproduction exacte de convert_second() Lua"""
-    
-    def calculate_time(self, time_ref: str, operator: str, offset_secs: int) -> int:
-        """Reproduction exacte des calculs temporels Lua"""
-```
 
 #### 2. Tests comparatifs automatisés
 
@@ -580,34 +545,10 @@ def run_comparative_test(config_file: str) -> Dict[str, Any]:
 
 ### Scripts de validation disponibles
 
-#### 1. `run_comparison_tests.py`
-Test comparatif interactif avec rapport détaillé :
-
-```bash
-python run_comparison_tests.py
-
-# Sortie exemple:
-🔍 Test avec le fichier de configuration original SOLARECL.TXT
-======================================================================
-
-📊 RÉSULTATS DE COMPARAISON LUA vs PYTHON
-==========================================
-
-✅ Configuration parsing: IDENTIQUE
-✅ Calculs temporels: ÉQUIVALENTS (écart max: 0.001s)
-✅ Séquence d'actions: COHÉRENTE  
-⚠️ Configurations caméra: LÉGÈRES DIFFÉRENCES (formats)
-
-📈 SCORE GLOBAL: 95/100 - EXCELLENT
-```
-
-#### 2. Tests pytest intégrés
+#### 1. Tests pytest intégrés
 ```bash
 # Tests comparatifs unitaires
 python -m pytest tests/test_lua_python_comparison.py -v
-
-# Tests de régression complète
-./run_regression_tests.sh
 ```
 
 ### Critères de validation
@@ -656,22 +597,6 @@ python -m pytest tests/test_lua_python_comparison.py -v
 5. **Documentation** des éventuelles divergences acceptées
 
 ### Outils de debugging
-
-#### Mode verbose
-```bash
-python run_comparison_tests.py --verbose
-
-# Affiche différences détaillées:
-TEMPS CALCULÉS:
-  Lua:    19:27:03 (69423s)
-  Python: 19:27:03 (69423s) 
-  ✅ IDENTIQUE
-
-CONFIGURATION CAMÉRA:
-  Lua:    aperture=8, shutter=125
-  Python: aperture="f/8", shutter="1/125"
-  ⚠️ FORMAT DIFFÉRENT (acceptable)
-```
 
 #### Logs de débogage
 ```python
@@ -771,8 +696,7 @@ if not validator.validate_system(config):
 
 ```bash
 # Clone et setup
-git clone https://github.com/eclipse-oz/python-migration.git
-cd python-migration/python
+git clone https://github.com/ozuntini/Solar_Eclipse_Photography.git
 
 # Environnement virtuel
 python -m venv eclipse_env
@@ -866,7 +790,7 @@ def execute_action(self, action: ActionConfig) -> bool:
 
 ---
 
-**Version**: 3.0.0  
+**Version**: 3.0.1  
 **Dernière mise à jour**: Décembre 2024  
 **Auteurs**: Équipe Eclipse-OZ  
 **License**: GNU GPL v3

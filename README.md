@@ -2,7 +2,24 @@
 
 ## Vue d'ensemble
 
-Ce projet est une migration complète du script `eclipse_OZ.lua` de Magic Lantern vers Python avec support GPhoto2. Il permet le contrôle automatisé de plusieurs appareils photo Canon pour la photographie d'éclipses solaires.
+Ce projet est une migration complète du script `eclipse_OZ.lua` de Magic Lantern vers Python avec support GPhoto2.  
+Il permet le contrôle automatisé de plusieurs appareils photo Canon pour la photographie d'éclipses solaires.
+<hr style="height:8px; border:none; background-color:red;">
+
+> [!CAUTION]
+> ## ⚠️ DANGER CRITIQUE : RISQUE DE CÉCITÉ ⚠️
+> **CE SYSTÈME EST EXCLUSIVEMENT RÉSERVÉ À L'ASTROPHOTOGRAPHIE.**
+> 
+> * **INTERDICTION FORMELLE** d'utiliser ce dispositif pour l'observation visuelle (œil à l'oculaire).
+> * Une défaillance logicielle, un bug du script ou une coupure de courant peut entraîner le retrait imprévu du filtre.
+> * L'observation directe du soleil sans filtre à travers un instrument optique provoque une **perte de vue immédiate et définitive**.
+> 
+> **L'utilisateur assume l'entière responsabilité de l'utilisation de ce code.**
+
+![Danger](https://img.shields.io/badge/DANGER-EYE_SAFETY-red?style=for-the-badge)
+![Photo Only](https://img.shields.io/badge/Usage-Astrophotography_Only-blue?style=for-the-badge)
+
+<hr style="height:8px; border:none; background-color:red;">
 
 ## Documentation
 
@@ -11,6 +28,7 @@ Ce projet est une migration complète du script `eclipse_OZ.lua` de Magic Lanter
 - **[DOCUMENTATION_PYTHON.md](DOCUMENTATION_PYTHON.md)** - Documentation technique complète de l'application Python
 - **[GUIDE_FONCTIONNEMENT.md](GUIDE_FONCTIONNEMENT.md)** - Guide pratique d'utilisation quotidienne  
 - **[VALIDATION_COHERENCE_LUA_PYTHON.md](VALIDATION_COHERENCE_LUA_PYTHON.md)** - Guide de validation et tests comparatifs Lua/Python
+- **[MANUEL_D'UTILISATION.md](MANUEL_D'UTILISATION.md)** - Manuel d'aide à l'utilisation et à la constuction du fichier de script
 
 ## Fonctionnalités
 
@@ -78,6 +96,7 @@ Photo,reference,operateur,temps,_,_,_,_,_,ouverture,iso,vitesse,mlu
 Boucle,reference,op_debut,temps_debut,op_fin,temps_fin,intervalle,_,_,ouverture,iso,vitesse,mlu
 Interval,reference,op_debut,temps_debut,op_fin,temps_fin,nombre,_,_,ouverture,iso,vitesse,mlu
 ```
+C.F. **[MANUEL_D'UTILISATION.md](MANUEL_D'UTILISATION.md)** pour vous aider à la construction de ce script.
 
 ### Exemples de configuration
 
@@ -130,22 +149,27 @@ mgr.disconnect_all()
 
 ```
 python/
-├── main.py                    # Point d'entrée principal
-├── config/                    # Parsing et validation configuration
-│   ├── config_parser.py
-│   └── eclipse_config.py
-├── hardware/                  # Contrôle matériel
-│   ├── camera_controller.py
-│   └── multi_camera_manager.py
-├── scheduling/                # Planification et exécution
-│   ├── time_calculator.py
-│   ├── action_scheduler.py
-│   └── action_types.py
-├── utils/                     # Utilitaires
-│   ├── logger.py
-│   ├── validation.py
-│   └── constants.py
-└── tests/                     # Tests unitaires
+├── main.py                     # Point d'entrée principal
+├── config/                     # Parsing et validation configuration
+│   ├── __init__.py             # Exports publics
+│   ├── eclipse_config.py       # Structures de données
+│   └── config_parser.py        # Analyse de fichiers
+├── hardware/                   # Contrôle matériel
+│   ├── __init__.py             # Exports: CameraController, MultiCameraManager
+│   ├── camera_controller.py    # Contrôle caméra individuelle
+│   ├── multi_camera_manager.py # Orchestration multi-caméras
+│   └── filter_controller.py    # Contrôle panneau Gemini AutoFlatPanel
+├── scheduling/                 # Planification et exécution
+│   ├── __init__.py             # Exports
+│   ├── action_scheduler.py     # Exécution d'actions
+│   ├── time_calculator.py      # Calculs temporels
+│   └── action_types.py         # Définitions d'actions
+├── utils/                      # Utilitaires
+│   ├── __init__.py             # Exports publics
+│   ├── constants.py            # Constantes globales
+│   ├── logger.py               # Configuration logging
+│   └── validation.py           # Validation système/caméras
+└── tests/                      # Tests unitaires
 ```
 
 ### Flux d'exécution

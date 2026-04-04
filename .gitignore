@@ -4,3 +4,4 @@ config/__pycache__/
 hardware/__pycache__/
 scheduling/__pycache__/
 utils/__pycache__/
+config/__pycache__/config_parser.cpython-313.pyc
