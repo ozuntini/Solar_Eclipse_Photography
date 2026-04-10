@@ -20,11 +20,11 @@
 ## Solar Eclipse Photography
 
 Ce programme permet d'automatiser la photographie d'une éclipse Solaire ou Lunaire.  
-L'objectif est que le cycle de photographies se déroule de manière autonome et permette à l'observateur de vivre pleinement l'évennement.
+L'objectif est que le cycle de photographies se déroule de manière autonome et permette à l'observateur de vivre pleinement l'évènement.
 Pour cela le programme va orchestrer le déclenchement de prises de vues suivant une séquence prédéfinie. Cette séquence est décrite dans un fichier texte.  
 Le document ci-après vous explique comment utiliser ce programme est préparer votre observation.  
-Ce programme python fonctionne sur une Raspberry sous Linux. Il utilise la librairie Gphoto2 et est normalement compatible avec tous les type de boitiers reconnus par cette librairie.  
-Il a été testé avec un Canon 6D et un R6.  
+Ce programme python fonctionne sur une Raspberry sous Linux. Il utilise la librairie Gphoto2 et est normalement compatible avec tous les types de boitiers reconnus par cette librairie. Une fonction permet d'enlever et de remettre un filtre devant l'objectif. Elle s'appuie sur un Automatic FlatPanel de Gemini adapté pour la circonstance.  
+Le programme a été testé avec un Canon 6D et un R6.  
 
 ## Principe de fonctionnement
 
@@ -32,7 +32,7 @@ Le programme va réaliser une série d'opération décrites dans le fichier séq
 Les heures peuvent être indiquées en fonction de circonstances locales, 1er contact, 2éme contact...  
 Elles peuvent être indiquées aussi en absolue, 13h45m06s...  
 Le programme ne gère pas le jour, la séquence commencera à l'heure indiquée quel que soit le jour.
-Le nom du fichier script est passé en paramêtre au lancement du programme. 
+Le nom du fichier script est passé en paramètre au lancement du programme. 
 
 ## Descriptif de la séquence
 
@@ -42,13 +42,15 @@ Il faut respecter les règles suivantes
 
 * Pas de paramètre vide, y mettre un "-"
 * \# pour commenter une ligne
-* Les séquences doivent se suivre temporellement. Le fichier n'est lu que dans un sens. 
+* ⚠️ Les séquences doivent se suivre temporellement. Le fichier n'est lu que dans un sens. ⚠️
 
-Six types de lignes sont possibles, Verif, Config, Boucle, Photo, Interval, Filter.
+Six types d'actions sont possibles, Verif, Config, Boucle, Photo, Interval, Filter.
 
 ---
+
 ## Syntaxe de la ligne Verif
-![Static Badge](https://img.shields.io/badge/text-under%20construction-orange)
+![Static Badge](https://img.shields.io/badge/TEXT-UNDER%20CONSTRUCTION-orange) ![Static Badge](https://img.shields.io/badge/BUILD-IN%20PROGRESS-orange)
+
 
 Quatre paramètres du boitier sont analysés au démarrage du programme et affichés si une ligne Verif est présente dans le descriptif.  
 Il est possible de les rendre bloquants si une valeur est indiquée dans la ligne Verif.  
@@ -70,6 +72,7 @@ Position|Nom|Valeur|Description
 Verif : Mode M, AF Off, 20%, 4000M°  
 `Verif,3,0,20,4000`
 
+---
 
 ## Syntaxe de la ligne Config 🕔 
 
@@ -102,7 +105,6 @@ Position|Nom|Valeur|Description
 6.1|Hd|0-23|Heure du quatrième contact C4
 6.2|Md|0-59|Minute du quatrième contact
 6.3|Sd|0-59|Seconde du quatrième contact
-| | |
 
 #### Exemple
 
@@ -122,17 +124,16 @@ Position|Nom|Valeur|Description
 :---:|:---:|:---:|:---
 1|Action|Photo|photo unique 
 2|Ref|C1,C2,Max,C3,C4 ou -|Indique le point de référence, mettre un "-" si en mode absolu
-3|Oper|+ ou -|Ajoute ou soustrait l'heure de début à la Ref
+3|Oper|+ ou -|Ajoute ou soustrait l'heure de début à la Réf
 4.1|Hd|0-23|Heure de début de la séquence
 4.2|Md|0-59|Minute de début de la séquence
 4.3|Sd|0-59|Seconde de début de la séquence
 5|Aperture|Diaph.|Valeur du Diaphragme (2.8,8,11...)(*)
 6|ISO|Num.|Sensibilité du capteur (100, 800, 6400,...)(*)
 7|ShutterSpeed|Num.|Vitesse d'exposition en seconde (*) 
-8|MLUDelay|Num.|Délais d'attente entre la montée du mirroir et le déclenchement, en miliseconde. Si 0 pas de montée du mirroir avant le déclenchement. 
-|||
+8|MLUDelay|Num.|Délais d'attente entre la montée du miroir et le déclenchement, en milliseconde. Si 0 pas de montée du miroir avant le déclenchement. 
 
-(*) Attention prendre des valeurs compatibles avec votre équipement.
+(*) Attention prendre des valeurs compatibles avec votre équipement. Sur Canon la vitesse est exprimée en seconde de 30s à 0.3s et en 1/n de 1/4 à 1/8000.
 
 ### Exemples de ligne Photo
 
@@ -171,13 +172,13 @@ Chaque ligne décrit une séquence de la manière suivante :
 
 Position|Nom|Valeur|Description
 :---:|:---:|:---:|:---
-1|Action|Boucle, Interval|Suite de photos identiques, photo unique ou déplacement du filtre 
+1|Action|Boucle, Interval|Suite de photos identiques 
 2|Ref|C1,C2,Max,C3,C4 ou -|Indique le point de référence, mettre un "-" si en mode absolu
-3|Oper|+ ou -|Ajoute ou soustrait l'heure de début à la Ref
+3|Oper|+ ou -|Ajoute ou soustrait l'heure de début à la Réf
 4.1|Hd|0-23|Heure de début de la séquence
 4.2|Md|0-59|Minute de début de la séquence
 4.3|Sd|0-59|Seconde de début de la séquence
-5|Oper|+ ou -|Ajoute ou soustrait l'heure de fin à la Ref
+5|Oper|+ ou -|Ajoute ou soustrait l'heure de fin à la Réf
 6.1|Hf|0-23|Heure de fin de la séquence (*)
 6.2|Mf|0-59|Minute de fin de la séquence (*)
 6.3|Sf|0-59|Seconde de fin de la séquence (*)
@@ -185,10 +186,10 @@ Position|Nom|Valeur|Description
 8|Aperture|Diaph.|Valeur du Diaphragme (2.8,8,11...)(**)
 9|ISO|Num.|Sensibilité du capteur (100, 800, 6400,...)(**)
 10|ShutterSpeed|Num.|Vitesse d'exposition en seconde (**)
-11|MLUDelay|Num.|Délais d'attente entre la montée du mirroir et le déclenchement, en miliseconde. Si 0 pas de montée du mirroir avant le déclenchement. 
+11|MLUDelay|Num.|Délais d'attente entre la montée du miroir et le déclenchement, en milliseconde. Si 0 pas de montée du miroir avant le déclenchement. 
 
 (*) Uniquement utilisé par l'action "Boucle" et "Interval".  
-(**) Attention prendre des valeurs compatibles avec votre équipement.
+(**) Attention prendre des valeurs compatibles avec votre équipement. Sur Canon la vitesse est exprimée en seconde de 30s à 0.3s et en 1/n de 1/4 à 1/8000.
 
 #### Exemples
 
@@ -213,7 +214,7 @@ Le temps minimum entre deux images est de 1s.
 
 ---
 
-## Syntaxe de la ligne Filter
+## Syntaxe de la ligne Filter 😎
 
 L'action Filter positionne ou enlève un filtre devant l'objectif. Elle s'appuie sur une adaptation d'un Automatic Flat Panel de la marque Gemini.  
 Seule l'heure de début est utilisée.  
@@ -225,14 +226,26 @@ Position|Nom|Valeur|Description
 :---:|:---:|:---:|:---
 1|Action|Filter|Déplacement du filtre 
 2|Ref|C1,C2,Max,C3,C4 ou -|Indique le point de référence, mettre un "-" si en mode absolu
-3|Oper|+ ou -|Ajoute ou soustrait l'heure de début à la Ref
+3|Oper|+ ou -|Ajoute ou soustrait l'heure de début à la Réf.
 4.1|Hd|0-23|Heure de début de la séquence
 4.2|Md|0-59|Minute de début de la séquence
 4.3|Sd|0-59|Seconde de début de la séquence
 5|Act|0 ou 1|1 => ouvre, 0 => ferme
 |||
 
+---
+
 ## Lancement de la séquence
+
+Pour lancer la séquence de traitement vous pouvez utiliser SEP_Launch.sh.
+
+```schell
+#./SEP_Launch.sh path/script --log=path/logfile
+
+./SEP_Launch.sh ./scripts_eclipse/eclipse-spain-2026.txt --log=./log/spain-2026.log
+```
+
+---
 
 ## Paramétrage du boitier
 
@@ -242,20 +255,20 @@ Le boitier doit être en mode :
 * Mode Manuel
 * Auto Focus en off
 
+gphoto2 --get-config=speed
+
 ## Mirror Lockup
-![Static Badge](https://img.shields.io/badge/text-under%20construction-orange)
+![Static Badge](https://img.shields.io/badge/TEXT-UNDER%20CONSTRUCTION-orange) ![Static Badge](https://img.shields.io/badge/BUILD-IN%20PROGRESS-orange)
 
-Si le boitier le permet il est possible d'utiliser le Mirrorlockup. Cela permet d'éviter des vibrations pendant la prise de vue.  
+Si le boitier le permet il est possible d'utiliser le Mirror lockup. Cela permet d'éviter des vibrations pendant la prise de vue.  
 
-
-# Configurations
+## Configurations 🛠️
 
 ## Mode test
 
 Pour tester le script il est possible d'utiliser le mode Test (--test-mode). Ce mode déroule le script normalement mais ne déclenche pas les photos.  
 > Mode simulation : python main.py config_eclipse.txt --test-mode
 
+## Fichier log
 
-
-# Fichier log
-![Static Badge](https://img.shields.io/badge/text-under%20construction-orange)
+![Static Badge](https://img.shields.io/badge/TEXT-UNDER%20CONSTRUCTION-orange) ![Static Badge](https://img.shields.io/badge/BUILD-IN%20PROGRESS-orange)

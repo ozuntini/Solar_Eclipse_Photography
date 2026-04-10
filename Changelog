@@ -1,4 +1,10 @@
-## Changelot 05/04/2026
+## Changelog 11/04/2026
+Adaptation du requirements.txt
+Correction du __init__.py de hardware
+Correction du filter_controller.py
+Tests de fonctionnement
+
+## Changelog 05/04/2026
 Création du Manuel d'utilistaion
 Amélioration de la gestion du nombre de champs dans le script d'orchestration pour chaque commande
 Adaptation du config_parser.py

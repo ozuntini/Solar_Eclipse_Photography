@@ -73,7 +73,7 @@ try:
             if args.action == 'Open':
                 print("🔓 Ouverture du panneau...")
                 cover = panel.open_cover()
-                if cover == CoverState.OPEN:
+                if cover == CoverState.OPENED:
                     print("✅ Panneau ouvert avec succès")
                 else:
                         print("❌ Échec de l'ouverture du panneau")

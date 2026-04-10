@@ -117,7 +117,7 @@ class ActionScheduler:
                 if action.cover == 1:  # Using cover field to indicate filter state (1=open, 0=close)
                     self.logger.info("Opening flat panel...")
                     cover = panel.open_cover()
-                    if cover == CoverState.OPEN:
+                    if cover == CoverState.OPENED:
                         self.logger.info("Flat panel opened successfully")
                         return True
                     else:

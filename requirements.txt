@@ -22,3 +22,6 @@ mypy>=1.0.0
 
 # Serial communication for hardware control
 pyserial>=3.5.0
+
+# Web framework for building interactive dashboards
+streamlit>=1.56.0

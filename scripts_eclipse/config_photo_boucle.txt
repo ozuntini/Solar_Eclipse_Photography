@@ -5,15 +5,20 @@
 # Ligne de configuration principale
 # Config,C1,C2,Max,C3,C4,test_mode
 # C1 = Premier contact, C2 = Début totalité, Max = Maximum, C3 = Fin totalité, C4 = Dernier contact
-# test_mode: 1 = simulation, 0 = mode réel
-Config,23:03:00,23:04:30,23:05:30,23:06:30,23:08:00,1
+Config,09:36:00,09:37:30,09:38:10,09:38:50,09:40:20
 
 # Actions photographiques
-# Format: Type,reference_temps,operateur,temps,operateur_fin,temps_fin,intervalle_ou_nombre,_,_,ouverture,iso,vitesse,mlu
+# Format: Type,reference_temps,operateur,temps,operateur_fin,temps_fin,intervalle_ou_nombre,ouverture,iso,vitesse,mlu
+
+# Ouverture du filtre à C2 moins 13s et fermeture à C3 plus 0s
+Filter,C2,-,00:00:13,1
 
 # Boucle de photos pendant la totalité
-# Début 30s après C1, fin 30s après C1 (dans la totalité), une photo toutes les 5 secondes
-Boucle,C1,-,00:00:30,+,00:00:30,5,-,-,2,400,0.25,0
+# Début 30s après C1, fin 30s après C1 (dans la totalité), une photo toutes les 7 secondes
+Boucle,Max,-,00:00:30,+,00:00:30,7,3.5,400,1/10,0
+
+# Ouverture du filtre à C2 moins 13s et fermeture à C3 plus 0s
+Filter,C3,-,00:00:00,0
 
 # Notes sur les paramètres:
 # - Ouverture: f-number (ex: 4 = f/4, 5.6 = f/5.6)                      -> verifier avec un gphoto2 --get-config=aperture que les valeurs sont compatibles avec votre boitier
