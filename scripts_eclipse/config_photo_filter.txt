@@ -6,7 +6,7 @@
 # Config,C1,C2,Max,C3,C4,test_mode
 # C1 = Premier contact, C2 = Début totalité, Max = Maximum, C3 = Fin totalité, C4 = Dernier contact
 # test_mode: 1 = simulation, 0 = mode réel
-Config,01:20:00,01:24:30,01:25:00,01:26:30,01:30:00
+Config,15:17:00,15:18:30,15:19:00,15:30:30,15:31:00
 
 # Actions photographiques
 # Format: Type,reference_temps,operateur,temps,operateur_fin,temps_fin,intervalle_ou_nombre,_,_,ouverture,iso,vitesse,mlu

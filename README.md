@@ -76,6 +76,8 @@ source ~/eclipse_env/bin/activate
 # Installer les dépendances Python
 pip install -r requirements.txt
 
+Attention à pip install git+https://github.com/ozuntini/Filter_Control.git
+
 # Configurer les permissions USB pour Canon
 echo 'SUBSYSTEM=="usb", ATTR{idVendor}=="04a9", MODE="0666"' | sudo tee /etc/udev/rules.d/99-canon-cameras.rules
 sudo udevadm control --reload-rules

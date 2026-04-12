@@ -17,7 +17,8 @@ from .action_types import create_action, ActionType
 from config.eclipse_config import ActionConfig, CameraSettings
 from hardware.multi_camera_manager import MultiCameraManager
 from hardware.camera_controller import format_gphoto2_aperture, format_gphoto2_shutter
-from hardware.filter_controller import GeminiAutoFlatPanel, CoverState
+# On part du nom du DOSSIER, puis du nom du FICHIER (sans .py)
+from filter_control.filter_controller import GeminiAutoFlatPanel, CoverState
 
 class ActionScheduler:
     """

@@ -1,8 +1,11 @@
 ## Changelog 11/04/2026
-Adaptation du requirements.txt
-Correction du __init__.py de hardware
-Correction du filter_controller.py
-Tests de fonctionnement
+- Passage en package pip pour filter_controler
+- Adaptation du requirements.txt
+- Correction du __init__.py de hardware
+- Modification du action_scheduler.py pour charger les class de filter_controller.py
+- Tests de fonctionnement
+- Renomage de Changelog et passage en md
+- Nettoyage de l'arborescence
 
 ## Changelog 05/04/2026
 Création du Manuel d'utilistaion

@@ -32,7 +32,7 @@
 | Module | Responsabilité | Fichiers |
 |--------|-----------------|----------|
 | **config** | Analyse et structure de configuration | `eclipse_config.py`, `config_parser.py` |
-| **hardware** | Contrôle caméras et filtre | `camera_controller.py`, `multi_camera_manager.py`, `filter_controller.py` |
+| **hardware** | Contrôle caméras et filtre | `camera_controller.py`, `multi_camera_manager.py` |
 | **scheduling** | Exécution d'actions programmées | `action_scheduler.py`, `time_calculator.py`, `action_types.py` |
 | **utils** | Utilitaires système | `logger.py`, `validation.py`, `constants.py` |
 
@@ -120,8 +120,7 @@ Filter,C1,-,00:01:00,_,_,_,1
 hardware/
 ├── __init__.py                  # Exports: CameraController, MultiCameraManager
 ├── camera_controller.py         # Contrôle caméra individuelle
-├── multi_camera_manager.py      # Orchestration multi-caméras
-└── filter_controller.py         # Contrôle panneau Gemini AutoFlatPanel
+└── multi_camera_manager.py      # Orchestration multi-caméras
 ```
 
 ### `camera_controller.py`
@@ -639,6 +638,9 @@ Exception
 - **gphoto2** (commande système + module Python)
 - **python >= 3.7**
 - **pyserial** (pour GeminiAutoFlatPanel)
+- **Filter_Control** Dépendance locale
+> pip install git+https://github.com/ozuntini/Filter_Control.git
+
 
 ### Optionnelles
 - **colorlog** (logging couleur)

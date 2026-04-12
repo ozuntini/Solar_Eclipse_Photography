@@ -1,12 +1,11 @@
-# Eclipse Photography Controller - Python Migration
-# Migration complète du script eclipse_OZ.lua de Magic Lantern
+# Solar Eclipse Photography Controller - Python/GPhoto2
 
 [project]
-name = "eclipse-photography-controller"
+name = "Solar Eclipse Photography Controller"
 version = "3.0.0"
-description = "Python/GPhoto2 migration of Magic Lantern eclipse_OZ.lua script for automated eclipse photography"
+description = "Python/GPhoto2 script for automated eclipse photography"
 authors = [
-    {name = "Eclipse_OZ Migration Project"}
+    {name = "Olivier Zuntini", email = "olivier.zuntini@gmail.com"}
 ]
 readme = "README.md"
 license = {text = "MIT"}
