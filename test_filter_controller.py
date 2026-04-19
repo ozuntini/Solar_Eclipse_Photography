@@ -4,7 +4,7 @@ Script de test pour le contrôle d'un GeminiAutoFlatPanel via USB/Serial.
 Ce script permet d'ouvrir ou de fermer le panneau, ou de vérifier son état actuel.
 Il utilise la classe `GeminiAutoFlatPanel` définie dans `filter_controller.py`.
 """
-from hardware.filter_controller import GeminiAutoFlatPanel, CoverState  # Import modifié pour correspondre à la structure du projet Solar Eclipse Photography
+from filter_control.filter_controller import GeminiAutoFlatPanel, CoverState  # Import modifié pour correspondre à la structure du projet Solar Eclipse Photography
 import logging
 import argparse
 

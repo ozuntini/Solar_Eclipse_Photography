@@ -4,7 +4,7 @@
 
 set -e  # Exit on any error
 
-echo "=== Eclipse_OZ Python Installation ==="
+echo "=== Solar Eclipse Photography Python Installation ==="
 
 # Update system
 echo "Updating system packages..."

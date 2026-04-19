@@ -76,7 +76,7 @@ source ~/eclipse_env/bin/activate
 # Installer les dépendances Python
 pip install -r requirements.txt
 
-Attention à pip install git+https://github.com/ozuntini/Filter_Control.git
+Attention à pip install git+https://github.com/ozuntini/Filter_Control.git # il est ajouté au requirements.txt
 
 # Configurer les permissions USB pour Canon
 echo 'SUBSYSTEM=="usb", ATTR{idVendor}=="04a9", MODE="0666"' | sudo tee /etc/udev/rules.d/99-canon-cameras.rules
@@ -143,6 +143,21 @@ mgr = MultiCameraManager()
 print(f'Caméras détectées: {mgr.discover_cameras()}')
 mgr.disconnect_all()
 "
+```
+
+#### Test d'une prise de vue
+```bash
+gphoto2 --capture-image
+```
+Si vous rencontrer l'erreur **Could not claim interface 0 (Device or resource busy)**.  
+Il faut désactiver l'interface graphique.
+```bash
+sudo raspi-config
+
+S1 System Options.
+    └── S5 Boot...  
+        └── IB1 Consol Text. 
+sudo reboot
 ```
 
 ## Architecture
