@@ -16,7 +16,11 @@ import time
 from datetime import datetime
 from pathlib import Path
 
+import pandas as pd
 import streamlit as st
+
+# How often the dashboard auto-refreshes (seconds)
+REFRESH_INTERVAL_SECONDS = 2
 
 # ---------------------------------------------------------------------------
 # Argument parsing (Streamlit strips everything before "--")
@@ -61,8 +65,8 @@ def _parse_journal(path: str) -> list[dict]:
                 continue
             try:
                 entries.append(json.loads(line))
-            except json.JSONDecodeError:
-                pass  # ignore malformed lines silently
+            except json.JSONDecodeError as exc:
+                print(f"[monitor_dashboard] Malformed JSON line ignored: {exc}", file=sys.stderr)
     return entries
 
 
@@ -139,8 +143,6 @@ def _render_next_action(entry: dict) -> None:
 
 def _render_history(entries: list[dict]) -> None:
     """Render the last-10-entries expander."""
-    import pandas as pd  # import here to avoid hard dependency at module level
-
     with st.expander("📋 Historique récent", expanded=False):
         if not entries:
             st.write("Aucune entrée disponible.")
@@ -201,7 +203,7 @@ def main() -> None:
             f"Entrées lues : 0  •  Dernier rafraîchissement : "
             f"{datetime.now().strftime('%H:%M:%S')}"
         )
-        time.sleep(2)
+        time.sleep(REFRESH_INTERVAL_SECONDS)
         st.rerun()
 
     # --- Last action block ---
@@ -224,7 +226,7 @@ def main() -> None:
     )
 
     # --- Auto-refresh ---
-    time.sleep(2)
+    time.sleep(REFRESH_INTERVAL_SECONDS)
     st.rerun()
 
 
