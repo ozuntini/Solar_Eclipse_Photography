@@ -22,7 +22,7 @@ from config import parse_config_file
 from config.eclipse_config import SystemConfig
 from hardware import MultiCameraManager
 from scheduling import TimeCalculator, ActionScheduler
-from utils import setup_logging, SystemValidator
+from utils import setup_logging, SystemValidator, ActionJournal
 from utils.constants import (
     APP_NAME, APP_VERSION, APP_DESCRIPTION, 
     ERROR_MESSAGES, SUCCESS_MESSAGES
@@ -50,6 +50,7 @@ class EclipsePhotographyController:
         self.time_calculator: Optional[TimeCalculator] = None
         self.scheduler: Optional[ActionScheduler] = None
         self.validator: Optional[SystemValidator] = None
+        self.journal: Optional[ActionJournal] = None
         
         # Runtime state
         self.is_running = False
@@ -131,11 +132,29 @@ class EclipsePhotographyController:
             # Initialize time calculator
             self.time_calculator = TimeCalculator(self.config.eclipse_timings)
             
+            # Initialize action journal
+            journal_file = self.options.get('journal_file', 'eclipse_journal.jsonl')
+            try:
+                self.journal = ActionJournal(journal_file, test_mode=self.config.test_mode)
+            except Exception as e:
+                self.logger.error(f"Failed to initialize action journal '{journal_file}': {e}")
+                try:
+                    journal_path = Path(journal_file)
+                    if journal_path.exists():
+                        journal_path.unlink()
+                except Exception as cleanup_error:
+                    self.logger.warning(
+                        f"Failed to clean up journal file '{journal_file}': {cleanup_error}"
+                    )
+                return False
+            self.logger.info(f"Action journal: {journal_file}")
+
             # Initialize action scheduler
             self.scheduler = ActionScheduler(
                 self.camera_manager, 
                 self.time_calculator, 
-                self.config.test_mode
+                self.config.test_mode,
+                journal=self.journal,
             )
             
             self.logger.info("Initialization complete")
@@ -192,7 +211,8 @@ class EclipsePhotographyController:
                 
                 self.logger.info(f"=== Action {i + 1}/{len(self.config.actions)} ===")
                 
-                success = self.scheduler.execute_action(action_config)
+                next_action = self.config.actions[i + 1] if i + 1 < len(self.config.actions) else None
+                success = self.scheduler.execute_action(action_config, next_action_config=next_action, action_index=i)
                 
                 if not success:
                     self.logger.error(f"Action {i + 1} failed")
@@ -227,8 +247,13 @@ class EclipsePhotographyController:
             self.cleanup()
     
     def cleanup(self):
-        """Clean up resources."""
-        self.is_running = False
+                if self.scheduler:
+                    stats = self.scheduler.get_execution_stats()
+                    self.journal.log_session_end(stats)
+                elif self.logger:
+                    self.logger.warning(
+                        "Skipping session end stats logging because scheduler was not initialized"
+                    )
         
         if self.camera_manager:
             try:
@@ -236,6 +261,15 @@ class EclipsePhotographyController:
                 self.camera_manager.disconnect_all()
             except Exception as e:
                 self.logger.error(f"Error during camera cleanup: {e}")
+        
+        if self.journal:
+            try:
+                stats = self.scheduler.get_execution_stats() if self.scheduler else {}
+                self.journal.log_session_end(stats)
+                self.journal.close()
+            except Exception as e:
+                if self.logger:
+                    self.logger.error(f"Error closing journal: {e}")
         
         if self.logger:
             self.logger.info("Cleanup complete")
@@ -301,6 +335,12 @@ Examples:
     )
     
     parser.add_argument(
+        '--journal-file',
+        default='eclipse_journal.jsonl',
+        help='Journal file path for structured JSON Lines output (default: eclipse_journal.jsonl)'
+    )
+    
+    parser.add_argument(
         '--version',
         action='version',
         version=f'{APP_NAME} {APP_VERSION}'
@@ -326,7 +366,8 @@ def main() -> int:
         'test_mode': args.test_mode,
         'log_level': args.log_level,
         'log_file': args.log_file,
-        'strict_mode': args.strict_mode
+        'strict_mode': args.strict_mode,
+        'journal_file': args.journal_file,
     }
     
     if args.cameras:

@@ -1,5 +1,6 @@
 # Fichiers et dossiers à ignorer
 log/
+eclipse_journal.jsonl
 
 # Métadonnées de build et distribution
 *.egg-info/

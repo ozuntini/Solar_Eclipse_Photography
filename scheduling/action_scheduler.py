@@ -8,7 +8,10 @@ scheduling logic with Python equivalents.
 import logging
 import time
 from datetime import datetime, time as time_obj
-from typing import Dict, Any
+from typing import Dict, Any, Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from utils.action_journal import ActionJournal
 
 from utils.constants import DEFAULT_CAPTURE_TARGET, DEFAULT_ISO, DEFAULT_APERTURE, DEFAULT_SHUTTER, DEFAULT_SERIAL_PORT, DEFAULT_BAUD_RATE, DEFAULT_TIMEOUT
 
@@ -30,7 +33,7 @@ class ActionScheduler:
     - boucle() -> execute_loop_action()
     """
     
-    def __init__(self, camera_manager: MultiCameraManager, time_calculator: TimeCalculator, test_mode: bool = False):
+    def __init__(self, camera_manager: MultiCameraManager, time_calculator: TimeCalculator, test_mode: bool = False, journal: Optional['ActionJournal'] = None):
         """
         Initialize action scheduler.
         
@@ -38,10 +41,12 @@ class ActionScheduler:
             camera_manager: Multi-camera manager for hardware control
             time_calculator: Time calculation utilities
             test_mode: If True, simulate actions without actual photography
+            journal: Optional ActionJournal instance for structured logging
         """
         self.camera_manager = camera_manager
         self.time_calculator = time_calculator
         self.test_mode = test_mode
+        self.journal = journal
         self.logger = logging.getLogger('action_scheduler')
         
         # Statistics tracking
@@ -72,7 +77,7 @@ class ActionScheduler:
     # Action dispatcher
     # ------------------------------------------------------------------
 
-    def execute_action(self, action_config: ActionConfig) -> bool:
+    def execute_action(self, action_config: ActionConfig, next_action_config: Optional[ActionConfig] = None, action_index: int = 0) -> bool:
         """
         Execute a single action based on its type.
 
@@ -87,6 +92,8 @@ class ActionScheduler:
         
         Args:
             action_config: Action configuration to execute
+            next_action_config: Next action in the sequence (for journal), or None.
+            action_index: Zero-based index of this action in the sequence.
             
         Returns:
             True if execution was successful (or skipped), False on error.
@@ -131,19 +138,25 @@ class ActionScheduler:
                     )
             # ----------------------------------------------------------
 
+            if self.journal:
+                self.journal.log_action_start(action_index, action_config, next_action_config)
+
             # Route to appropriate execution method
             if action.action_type == ActionType.PHOTO:
-                success = self.execute_photo_action(action_config)
+                success = self.execute_photo_action(action_config, next_action_config, action_index)
             elif action.action_type == ActionType.LOOP:
-                success = self.execute_loop_action(action_config)
+                success = self.execute_loop_action(action_config, next_action_config, action_index)
             elif action.action_type == ActionType.INTERVAL:
-                success = self.execute_interval_action(action_config)
+                success = self.execute_interval_action(action_config, next_action_config, action_index)
             elif action.action_type == ActionType.FILTER:
-                success = self.execute_filter_action(action_config)
+                success = self.execute_filter_action(action_config, next_action_config, action_index)
             else:
                 self.logger.error(f"Unknown action type: {action_config.action_type}")
                 success = False
             
+            if self.journal:
+                self.journal.log_action_complete(action_index, action_config, next_action_config, success)
+
             if success:
                 self.actions_executed += 1
                 self.logger.info(f"Action completed successfully")
@@ -158,12 +171,14 @@ class ActionScheduler:
             self.execution_errors += 1
             return False
     
-    def execute_filter_action(self, action: ActionConfig) -> bool:
+    def execute_filter_action(self, action: ActionConfig, next_action_config: Optional[ActionConfig] = None, action_index: int = 0) -> bool:
         """
         Execute a filter action to open or close the flat panel.
         
         Args:
             action: Action configuration for filter control
+            next_action_config: Next action in the sequence (for journal), or None.
+            action_index: Zero-based index of this action in the sequence.
         Returns:
             True if successful, False otherwise
         """
@@ -186,18 +201,26 @@ class ActionScheduler:
                     cover = panel.open_cover()
                     if cover == CoverState.OPENED:
                         self.logger.info("Flat panel opened successfully")
+                        if self.journal:
+                            self.journal.log_filter_move(action_index, action, next_action_config, "OPEN", True)
                         return True
                     else:
                         self.logger.error("Failed to open filter panel")
+                        if self.journal:
+                            self.journal.log_filter_move(action_index, action, next_action_config, "OPEN", False)
                         return False
                 elif action.cover == 0:  # Using cover field to indicate filter state (1=open, 0=close)
                     self.logger.info("Closing flat panel...")
                     cover = panel.close_cover()
                     if cover == CoverState.CLOSED:
                         self.logger.info("Flat panel closed successfully")
+                        if self.journal:
+                            self.journal.log_filter_move(action_index, action, next_action_config, "CLOSE", True)
                         return True
                     else:
                         self.logger.error("Failed to close filter panel")
+                        if self.journal:
+                            self.journal.log_filter_move(action_index, action, next_action_config, "CLOSE", False)
                         return False
                 else:
                     self.logger.error(f"Unknown filter action: {action.cover}")
@@ -213,7 +236,7 @@ class ActionScheduler:
            # Toujours fermer la connexion
             panel.disconnect()
 
-    def execute_photo_action(self, action: ActionConfig) -> bool:
+    def execute_photo_action(self, action: ActionConfig, next_action_config: Optional[ActionConfig] = None, action_index: int = 0) -> bool:
         """
         Execute a single photo action.
         
@@ -221,6 +244,8 @@ class ActionScheduler:
         
         Args:
             action: Photo action configuration
+            next_action_config: Next action in the sequence (for journal), or None.
+            action_index: Zero-based index of this action in the sequence.
             
         Returns:
             True if successful, False otherwise
@@ -258,6 +283,12 @@ class ActionScheduler:
             total_cameras = len(capture_results)
             
             self.photos_taken += successful_captures
+
+            if self.journal:
+                self.journal.log_photo_trigger(
+                    action_index, action, next_action_config,
+                    successful_captures, total_cameras,
+                )
             
             if successful_captures > 0:
                 self.logger.info(f"Photo capture complete: {successful_captures}/{total_cameras} successful")
@@ -270,7 +301,7 @@ class ActionScheduler:
             self.logger.error(f"Error in photo action: {e}", exc_info=True)
             return False
     
-    def execute_loop_action(self, action: ActionConfig) -> bool:
+    def execute_loop_action(self, action: ActionConfig, next_action_config: Optional[ActionConfig] = None, action_index: int = 0) -> bool:
         """
         Execute a loop action with regular intervals.
         
@@ -278,6 +309,8 @@ class ActionScheduler:
         
         Args:
             action: Loop action configuration
+            next_action_config: Next action in the sequence (for journal), or None.
+            action_index: Zero-based index of this action in the sequence.
             
         Returns:
             True if successful, False otherwise
@@ -346,8 +379,15 @@ class ActionScheduler:
                     
                     # Count successful captures
                     successful_captures = sum(1 for result in capture_results.values() if result is not None)
+                    total_cameras = len(capture_results)
                     self.photos_taken += successful_captures
                     capture_count += 1
+
+                    if self.journal:
+                        self.journal.log_photo_trigger(
+                            action_index, action, next_action_config,
+                            successful_captures, total_cameras,
+                        )
                     
                     if successful_captures == 0:
                         self.logger.warning(f"All captures failed in loop iteration {capture_count}")
@@ -365,12 +405,14 @@ class ActionScheduler:
             self.logger.error(f"Error in loop action: {e}", exc_info=True)
             return False
     
-    def execute_interval_action(self, action: ActionConfig) -> bool:
+    def execute_interval_action(self, action: ActionConfig, next_action_config: Optional[ActionConfig] = None, action_index: int = 0) -> bool:
         """
         Execute an interval action with a specific number of photos over time.
         
         Args:
             action: Interval action configuration
+            next_action_config: Next action in the sequence (for journal), or None.
+            action_index: Zero-based index of this action in the sequence.
             
         Returns:
             True if successful, False otherwise
@@ -390,7 +432,7 @@ class ActionScheduler:
             
             if photo_count <= 1:
                 # Single photo, treat as photo action
-                return self.execute_photo_action(action)
+                return self.execute_photo_action(action, next_action_config, action_index)
             
             # Calculate interval between photos
             interval_seconds = total_duration / (photo_count - 1)  # Distribute evenly including endpoints
@@ -422,7 +464,14 @@ class ActionScheduler:
                 
                 # Count successful captures
                 successful_captures = sum(1 for result in capture_results.values() if result is not None)
+                total_cameras = len(capture_results)
                 self.photos_taken += successful_captures
+
+                if self.journal:
+                    self.journal.log_photo_trigger(
+                        action_index, action, next_action_config,
+                        successful_captures, total_cameras,
+                    )
                 
                 if successful_captures == 0:
                     self.logger.warning(f"All captures failed in interval iteration {i + 1}")

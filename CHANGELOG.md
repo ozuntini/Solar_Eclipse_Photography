@@ -1,6 +1,7 @@
 # Changelog
 ## 01/05/2026
 - Gestion de l'interruption via le Ctrl-C
+- Création d'une journalisation des actions et adaptation des différents scripts.
 
 ## Changelog 19/04/2026
 - Corrections suite à un test de réinstallation complète
