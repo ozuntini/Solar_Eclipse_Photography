@@ -247,13 +247,13 @@ class EclipsePhotographyController:
             self.cleanup()
     
     def cleanup(self):
-                if self.scheduler:
-                    stats = self.scheduler.get_execution_stats()
-                    self.journal.log_session_end(stats)
-                elif self.logger:
-                    self.logger.warning(
-                        "Skipping session end stats logging because scheduler was not initialized"
-                    )
+        if self.scheduler:
+            stats = self.scheduler.get_execution_stats()
+            self.journal.log_session_end(stats)
+        elif self.logger:
+            self.logger.warning(
+                "Skipping session end stats logging because scheduler was not initialized"
+            )
         
         if self.camera_manager:
             try:
