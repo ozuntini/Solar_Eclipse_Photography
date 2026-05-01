@@ -12,7 +12,7 @@ Config,18:35:00,18:36:30,18:37:00,18:37:30,18:39:00,0
 
 # Photo unique 10s avant C1
 # Photo,C1,-,00:00:10,ouverture,iso,vitesse_obturation,delai_mlu
-Photo,C1,-,00:00:10,4,100,0.001,500
+Photo,C1,-,00:00:10,4,100,1/1000,500
 
 # Photo unique 10 secondes avant le maximum
 # Photo,Max,-,00:00:10,ouverture,iso,vitesse_obturation,delai_mlu
@@ -27,13 +27,13 @@ Photo,C2,+,00:00:30,8,800,0.5,0
 
 # Boucle de photos pendant la totalité
 # Début 10s après C2, fin 1min50s après C2 (dans la totalité), une photo toutes les 5 secondes
-Boucle,C2,+,00:00:10,+,00:01:00,5,-,-,8,400,0.008,0
+Boucle,C2,+,00:00:10,+,00:01:00,5,8,400,1/800,0
 
 # Série de 10 photos réparties sur 2 minutes autour du maximum
-Interval,Max,-,00:01:00,+,00:01:00,10,-,-,11,200,0.004,1000
+Interval,Max,-,00:01:00,+,00:01:00,10,11,200,1/250,1000
 
 # Photo finale après C4
-Photo,C4,+,00:02:00,8,800,0.016,0
+Photo,C4,+,00:02:00,8,800,1/160,0
 
 # Notes sur les paramètres:
 # - Ouverture: f-number (ex: 4 = f/4, 5.6 = f/5.6)                      -> verifier avec un gphoto2 --get-config=aperture que les valeurs sont compatibles avec votre boitier

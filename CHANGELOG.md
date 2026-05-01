@@ -1,4 +1,8 @@
-# Changelog 19/04/2026
+# Changelog
+## 01/05/2026
+- Gestion de l'interruption via le Ctrl-C
+
+## Changelog 19/04/2026
 - Corrections suite à un test de réinstallation complète
 - Ajout du chargement de la librairie Filter.controler
 - Mise à jour du Readme
