@@ -49,22 +49,88 @@ class ActionScheduler:
         self.photos_taken = 0
         self.execution_errors = 0
     
+    # ------------------------------------------------------------------
+    # Time helpers
+    # ------------------------------------------------------------------
+
+    def _is_time_past(self, t: time_obj) -> bool:
+        """
+        Return True if the given time is strictly in the past relative to now.
+
+        Args:
+            t: The time to compare against the current wall-clock time.
+
+        Returns:
+            True if t < now (in seconds since midnight), False otherwise.
+        """
+        now = datetime.now().time()
+        now_seconds = self.time_calculator.time_to_seconds(now)
+        t_seconds = self.time_calculator.time_to_seconds(t)
+        return t_seconds < now_seconds
+
+    # ------------------------------------------------------------------
+    # Action dispatcher
+    # ------------------------------------------------------------------
+
     def execute_action(self, action_config: ActionConfig) -> bool:
         """
         Execute a single action based on its type.
+
+        Actions whose scheduled time (or end time for ranged actions) is already
+        in the past are silently skipped so that a late start does not block the
+        remaining sequence.
+
+        For ranged actions (Boucle / Interval) whose *start* is past but *end* is
+        still in the future the action is allowed to run: the underlying
+        execute_*_action methods will call wait_until() which returns immediately
+        for a past time, so execution starts at once.
         
         Args:
             action_config: Action configuration to execute
             
         Returns:
-            True if execution was successful, False otherwise
+            True if execution was successful (or skipped), False on error.
         """
         try:
             # Create action object for validation
             action = create_action(action_config)
-            
+
             self.logger.info(f"Executing action: {action.get_description()}")
-            
+
+            # ----------------------------------------------------------
+            # Past-action guard
+            # ----------------------------------------------------------
+            if action.action_type in (ActionType.PHOTO, ActionType.FILTER):
+                # Single-shot actions: skip if the trigger time is past.
+                trigger_time = self._calculate_action_time(action_config, 'start')
+                if self._is_time_past(trigger_time):
+                    self.logger.warning(
+                        f"Skipping action '{action.get_description()}' — "
+                        f"scheduled time {trigger_time} is already past."
+                    )
+                    return True  # Not an error; treated as a graceful skip.
+
+            elif action.action_type in (ActionType.LOOP, ActionType.INTERVAL):
+                # Ranged actions: skip only if the *end* of the window is past.
+                end_time = self._calculate_action_time(action_config, 'end')
+                if self._is_time_past(end_time):
+                    self.logger.warning(
+                        f"Skipping action '{action.get_description()}' — "
+                        f"end time {end_time} is already past."
+                    )
+                    return True  # Not an error; treated as a graceful skip.
+
+                # If the window has started but not ended, log it so the operator
+                # knows the action will begin immediately instead of waiting.
+                start_time = self._calculate_action_time(action_config, 'start')
+                if self._is_time_past(start_time):
+                    self.logger.info(
+                        f"Action '{action.get_description()}' started late — "
+                        f"start time {start_time} already passed. "
+                        f"Executing immediately until end time {end_time}."
+                    )
+            # ----------------------------------------------------------
+
             # Route to appropriate execution method
             if action.action_type == ActionType.PHOTO:
                 success = self.execute_photo_action(action_config)
