@@ -245,6 +245,7 @@ class EclipsePhotographyController:
         self.shutdown_requested = True
         if self.logger:
             self.logger.info(f"Received signal {signum}, initiating shutdown...")
+        raise KeyboardInterrupt
 
 
 def create_argument_parser() -> argparse.ArgumentParser:
