@@ -31,10 +31,15 @@ def _get_journal_path() -> str:
     args = sys.argv[1:]
     try:
         idx = args.index("--journal")
-        return args[idx + 1]
-    except (ValueError, IndexError):
-        pass
-    return "eclipse_journal.jsonl"
+    except ValueError:
+        return "eclipse_journal.jsonl"
+    if idx + 1 >= len(args):
+        print(
+            "[monitor_dashboard] Warning: --journal requires a value; using default.",
+            file=sys.stderr,
+        )
+        return "eclipse_journal.jsonl"
+    return args[idx + 1]
 
 
 # ---------------------------------------------------------------------------
