@@ -134,7 +134,19 @@ class EclipsePhotographyController:
             
             # Initialize action journal
             journal_file = self.options.get('journal_file', 'eclipse_journal.jsonl')
-            self.journal = ActionJournal(journal_file, test_mode=self.config.test_mode)
+            try:
+                self.journal = ActionJournal(journal_file, test_mode=self.config.test_mode)
+            except Exception as e:
+                self.logger.error(f"Failed to initialize action journal '{journal_file}': {e}")
+                try:
+                    journal_path = Path(journal_file)
+                    if journal_path.exists():
+                        journal_path.unlink()
+                except Exception as cleanup_error:
+                    self.logger.warning(
+                        f"Failed to clean up journal file '{journal_file}': {cleanup_error}"
+                    )
+                return False
             self.logger.info(f"Action journal: {journal_file}")
 
             # Initialize action scheduler
@@ -235,8 +247,13 @@ class EclipsePhotographyController:
             self.cleanup()
     
     def cleanup(self):
-        """Clean up resources."""
-        self.is_running = False
+                if self.scheduler:
+                    stats = self.scheduler.get_execution_stats()
+                    self.journal.log_session_end(stats)
+                elif self.logger:
+                    self.logger.warning(
+                        "Skipping session end stats logging because scheduler was not initialized"
+                    )
         
         if self.camera_manager:
             try:
