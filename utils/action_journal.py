@@ -37,13 +37,17 @@ class ActionJournal:
         self._seq = 0
         self._lock = threading.Lock()
         self._file = open(journal_file, "a", encoding="utf-8")  # noqa: WPS515
-        self._write_entry({
-            "event": "SESSION_START",
-            "status": "SUCCESS",
-            "current_action": None,
-            "next_action": None,
-            "details": self._base_details(),
-        })
+        try:
+            self._write_entry({
+                "event": "SESSION_START",
+                "status": "SUCCESS",
+                "current_action": None,
+                "next_action": None,
+                "details": self._base_details(),
+            })
+        except Exception:
+            self._file.close()
+            raise
 
     # ------------------------------------------------------------------
     # Public logging methods
@@ -143,7 +147,7 @@ class ActionJournal:
             try:
                 self._file.flush()
                 self._file.close()
-            except Exception:
+            except OSError:
                 pass
 
     # ------------------------------------------------------------------
