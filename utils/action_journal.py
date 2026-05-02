@@ -10,7 +10,7 @@ import threading
 from datetime import datetime
 from typing import Optional, Dict, Any
 
-from config.eclipse_config import ActionConfig
+from config.eclipse_config import ActionConfig, SystemConfig
 
 
 class ActionJournal:
@@ -43,7 +43,7 @@ class ActionJournal:
                 "status": "SUCCESS",
                 "current_action": None,
                 "next_action": None,
-                "details": self._base_details(),
+                "details": self._base_details()
             })
         except Exception:
             self._file.close()
@@ -52,6 +52,26 @@ class ActionJournal:
     # ------------------------------------------------------------------
     # Public logging methods
     # ------------------------------------------------------------------
+    def log_circumstance(self, 
+        C1: datetime, C2: datetime, Max: datetime, C3: datetime, C4: datetime
+    ) -> None:
+        """Log the initial circumstances of the eclipse."""
+        eclipse_timings = {
+            "C1": C1.isoformat(timespec="seconds"),
+            "C2": C2.isoformat(timespec="seconds"),
+            "Max": Max.isoformat(timespec="seconds"),
+            "C3": C3.isoformat(timespec="seconds"),
+            "C4": C4.isoformat(timespec="seconds"),
+        }
+        details = self._base_details()
+        self._write_entry({
+            "event": "CIRCUMSTANCE",
+            "status": "VALIDATED",
+            "current_action": None,
+            "next_action": None,
+            "information": eclipse_timings,  
+            "details": details,
+        })
 
     def log_action_start(
         self,

@@ -194,6 +194,9 @@ class EclipsePhotographyController:
                 self.logger.error("Eclipse timing validation failed")
                 return 1
             
+            if self.journal:
+                self.journal.log_circumstance(timings.c1, timings.c2, timings.max, timings.c3, timings.c4)
+
             # Show camera information
             camera_info = self.camera_manager.get_camera_info()
             self.logger.info("Camera information:")
