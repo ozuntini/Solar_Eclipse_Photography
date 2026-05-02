@@ -180,6 +180,17 @@ def _format_last_read_ts(ts: float | None) -> str:
 
 
 # ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+def _format_last_read_ts(ts: float) -> str:
+    """Return a human-readable HH:MM:SS string for a Unix timestamp, or '—' if unset."""
+    if ts > 0:
+        return datetime.fromtimestamp(ts).strftime('%H:%M:%S')
+    return "—"
+
+
+# ---------------------------------------------------------------------------
 # Main dashboard
 # ---------------------------------------------------------------------------
     journal_path = _get_journal_path()
@@ -240,6 +251,7 @@ def _format_last_read_ts(ts: float | None) -> str:
         else:
             st.info("⏳ En attente du démarrage de la séquence...")
         st.divider()
+        last_read_str = _format_last_read_ts(st.session_state.last_log_read_ts)
         st.caption(
             f"Entrées lues : {total_lines}  •  "
             f"Dernière lecture du journal : "
@@ -262,6 +274,7 @@ def _format_last_read_ts(ts: float | None) -> str:
     _render_history(entries)
 
     # --- Status bar ---
+    last_read_str = _format_last_read_ts(st.session_state.last_log_read_ts)
     st.caption(
         f"Entrées lues : {total_lines}  •  "
         f"Dernière lecture du journal : "
