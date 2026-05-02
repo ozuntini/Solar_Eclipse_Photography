@@ -19,8 +19,11 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
-# How often the dashboard auto-refreshes (seconds)
-REFRESH_INTERVAL_SECONDS = 2
+# How often the clock refreshes (seconds)
+CLOCK_REFRESH_SECONDS = 1
+
+# How often the journal file is re-read (seconds)
+LOG_READ_INTERVAL_SECONDS = 10
 
 # ---------------------------------------------------------------------------
 # Argument parsing (Streamlit strips everything before "--")
@@ -170,6 +173,17 @@ def _render_history(entries: list[dict]) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+def _format_last_read_ts(ts: float) -> str:
+    """Return a human-readable HH:MM:SS string for a Unix timestamp, or '—' if unset."""
+    if ts > 0:
+        return datetime.fromtimestamp(ts).strftime('%H:%M:%S')
+    return "—"
+
+
+# ---------------------------------------------------------------------------
 # Main dashboard
 # ---------------------------------------------------------------------------
 
@@ -182,13 +196,38 @@ def main() -> None:
         layout="wide",
     )
 
-    # --- Header ---
-    st.title("🌑 Eclipse Photography — Monitoring en temps réel")
-    st.caption(f"Fichier journal surveillé : `{journal_path}`")
+    # --- Session state initialisation ---
+    if "last_log_read_ts" not in st.session_state:
+        st.session_state.last_log_read_ts = 0.0
+        st.session_state.last_entry = None
+        st.session_state.last_entries = []
+        st.session_state.total_lines = 0
 
-    # --- Read journal ---
-    entries = _parse_journal(journal_path)
-    last_entry = _last_action_entry(entries)
+    # --- Header (with clock) ---
+    now = datetime.now()
+    header_col, clock_col = st.columns([3, 1])
+    with header_col:
+        st.title("🌑 Eclipse Photography — Monitoring en temps réel")
+        st.caption(f"Fichier journal surveillé : `{journal_path}`")
+    with clock_col:
+        st.markdown(
+            f"<div style='text-align:right; font-size:2.5rem; font-weight:bold; "
+            f"font-family:monospace; padding-top:0.6rem;'>🕒 {now.strftime('%H:%M:%S')}</div>",
+            unsafe_allow_html=True,
+        )
+
+    # --- Conditional journal reload (every LOG_READ_INTERVAL_SECONDS) ---
+    now_ts = time.time()
+    if now_ts - st.session_state.last_log_read_ts >= LOG_READ_INTERVAL_SECONDS:
+        entries = _parse_journal(journal_path)
+        last_entry = _last_action_entry(entries)
+        st.session_state.last_log_read_ts = now_ts
+        st.session_state.last_entry = last_entry
+        st.session_state.last_entries = entries
+        st.session_state.total_lines = len(entries)
+    else:
+        entries = st.session_state.last_entries
+        last_entry = st.session_state.last_entry
 
     # Test-mode banner (shown if any entry has test_mode == True)
     if any((e.get("details") or {}).get("test_mode") for e in entries):
@@ -204,11 +243,11 @@ def main() -> None:
         else:
             st.info("⏳ En attente du démarrage de la séquence...")
         st.divider()
+        last_read_str = _format_last_read_ts(st.session_state.last_log_read_ts)
         st.caption(
-            f"Entrées lues : 0  •  Dernier rafraîchissement : "
-            f"{datetime.now().strftime('%H:%M:%S')}"
+            f"Entrées lues : 0  •  Dernière lecture journal : {last_read_str}"
         )
-        time.sleep(REFRESH_INTERVAL_SECONDS)
+        time.sleep(CLOCK_REFRESH_SECONDS)
         st.rerun()
 
     # --- Last action block ---
@@ -225,13 +264,14 @@ def main() -> None:
     _render_history(entries)
 
     # --- Status bar ---
+    last_read_str = _format_last_read_ts(st.session_state.last_log_read_ts)
     st.caption(
-        f"Entrées lues : {len(entries)}  •  Dernier rafraîchissement : "
-        f"{datetime.now().strftime('%H:%M:%S')}"
+        f"Entrées lues : {st.session_state.total_lines}  •  "
+        f"Dernière lecture journal : {last_read_str}"
     )
 
-    # --- Auto-refresh ---
-    time.sleep(REFRESH_INTERVAL_SECONDS)
+    # --- Clock refresh (1 s) ---
+    time.sleep(CLOCK_REFRESH_SECONDS)
     st.rerun()
 
 
