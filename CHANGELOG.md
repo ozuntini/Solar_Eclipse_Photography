@@ -1,4 +1,8 @@
 # Changelog
+## 02/05/2026
+- Ajout d'une ligne avec les circonstances de l'éclipse dans le journal pour être utilisée par le monitor.
+- Correction du action_journal pour calculer et afficher le scheduled_at.
+
 ## 01/05/2026
 - Gestion de l'interruption via le Ctrl-C
 - Création d'une journalisation des actions et adaptation des différents scripts.

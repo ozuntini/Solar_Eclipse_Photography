@@ -7,8 +7,8 @@ suitable for real-time monitoring by external programs (e.g. tail -f).
 
 import json
 import threading
-from datetime import datetime
-from typing import Optional, Dict, Any
+from datetime import datetime, time as time_obj
+from typing import Optional, Dict, Any, Union
 
 from config.eclipse_config import ActionConfig, SystemConfig
 
@@ -35,6 +35,7 @@ class ActionJournal:
         self.journal_file = journal_file
         self.test_mode = test_mode
         self._seq = 0
+        self._circumstances: Dict[str, time_obj] = {}
         self._lock = threading.Lock()
         self._file = open(journal_file, "a", encoding="utf-8")  # noqa: WPS515
         try:
@@ -52,16 +53,32 @@ class ActionJournal:
     # ------------------------------------------------------------------
     # Public logging methods
     # ------------------------------------------------------------------
-    def log_circumstance(self, 
-        C1: datetime, C2: datetime, Max: datetime, C3: datetime, C4: datetime
+    def log_circumstance(self,
+        C1: Union[datetime, time_obj], C2: Union[datetime, time_obj],
+        Max: Union[datetime, time_obj], C3: Union[datetime, time_obj],
+        C4: Union[datetime, time_obj]
     ) -> None:
         """Log the initial circumstances of the eclipse."""
+        c1 = self._normalize_time(C1)
+        c2 = self._normalize_time(C2)
+        max_time = self._normalize_time(Max)
+        c3 = self._normalize_time(C3)
+        c4 = self._normalize_time(C4)
+
+        self._circumstances = {
+            "C1": c1,
+            "C2": c2,
+            "Max": max_time,
+            "C3": c3,
+            "C4": c4,
+        }
+
         eclipse_timings = {
-            "C1": C1.isoformat(timespec="seconds"),
-            "C2": C2.isoformat(timespec="seconds"),
-            "Max": Max.isoformat(timespec="seconds"),
-            "C3": C3.isoformat(timespec="seconds"),
-            "C4": C4.isoformat(timespec="seconds"),
+            "C1": c1.isoformat(timespec="seconds"),
+            "C2": c2.isoformat(timespec="seconds"),
+            "Max": max_time.isoformat(timespec="seconds"),
+            "C3": c3.isoformat(timespec="seconds"),
+            "C4": c4.isoformat(timespec="seconds"),
         }
         details = self._base_details()
         self._write_entry({
@@ -242,12 +259,48 @@ class ActionJournal:
             return f"{atype} à {start_t}"
         return f"{atype} à {time_ref}{start_op}{start_t}"
 
-    @staticmethod
-    def _scheduled_at(action_config: ActionConfig) -> Optional[str]:
-        """Return a string representation of the scheduled time, or None."""
+    def _scheduled_at(self, action_config: ActionConfig) -> Optional[str]:
+        """Return scheduled trigger time as HH:MM:SS, or None if unavailable."""
         if action_config.time_ref == "-":
-            return str(action_config.start_time)
-        return None  # Relative times are only resolved at execution
+            return action_config.start_time.isoformat(timespec="seconds")
+
+        ref_time = self._circumstances.get(action_config.time_ref)
+        if ref_time is None:
+            return None
+
+        if action_config.start_operator not in ("+", "-"):
+            return None
+
+        ref_seconds = self._time_to_seconds(ref_time)
+        offset_seconds = self._time_to_seconds(action_config.start_time)
+
+        if action_config.start_operator == "+":
+            scheduled_seconds = ref_seconds + offset_seconds
+        else:
+            scheduled_seconds = ref_seconds - offset_seconds
+
+        return self._seconds_to_time_string(scheduled_seconds)
+
+    @staticmethod
+    def _normalize_time(value: Union[datetime, time_obj]) -> time_obj:
+        """Normalize datetime/time values to plain time without microseconds."""
+        if isinstance(value, datetime):
+            return value.time().replace(microsecond=0)
+        return value.replace(microsecond=0)
+
+    @staticmethod
+    def _time_to_seconds(t: time_obj) -> int:
+        """Convert a time value to seconds since midnight."""
+        return t.hour * 3600 + t.minute * 60 + t.second
+
+    @staticmethod
+    def _seconds_to_time_string(seconds: int) -> str:
+        """Convert seconds since midnight to HH:MM:SS with day wrap."""
+        seconds = seconds % 86400
+        hours = seconds // 3600
+        minutes = (seconds % 3600) // 60
+        secs = seconds % 60
+        return f"{hours:02}:{minutes:02}:{secs:02}"
 
     def _action_summary(self, index: int, action_config: ActionConfig) -> Dict[str, Any]:
         """Build the action sub-object used in journal entries."""
