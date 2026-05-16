@@ -6,12 +6,13 @@ suitable for real-time monitoring by external programs (e.g. tail -f).
 """
 
 import json
+import os
 import threading
+import logging
 from datetime import datetime, time as time_obj
 from typing import Optional, Dict, Any, Union
 
 from config.eclipse_config import ActionConfig, SystemConfig
-
 
 class ActionJournal:
     """
@@ -27,11 +28,21 @@ class ActionJournal:
     def __init__(self, journal_file: str, test_mode: bool = False):
         """
         Open the journal file and write SESSION_START.
+        If the journal file already exists, rotate it by appending a timestamp suffix.
 
         Args:
             journal_file: Path to the .jsonl output file (opened in append mode).
             test_mode: Whether the controller is running in test mode.
         """
+        
+        self.logger = logging.getLogger('action_journal')
+
+        if os.path.exists(journal_file):
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            rotated_name = f"{journal_file}.{timestamp}"
+            os.rename(journal_file, rotated_name)
+            self.logger.info(f"Rotated existing journal to {rotated_name}")
+        
         self.journal_file = journal_file
         self.test_mode = test_mode
         self._seq = 0
@@ -46,13 +57,16 @@ class ActionJournal:
                 "next_action": None,
                 "details": self._base_details()
             })
+            self.logger.info(f"Started new action journal at {journal_file}")
         except Exception:
             self._file.close()
+            self.logger.error("Failed to write SESSION_START entry to journal", exc_info=True)
             raise
 
     # ------------------------------------------------------------------
     # Public logging methods
     # ------------------------------------------------------------------
+
     def log_circumstance(self,
         C1: Union[datetime, time_obj], C2: Union[datetime, time_obj],
         Max: Union[datetime, time_obj], C3: Union[datetime, time_obj],

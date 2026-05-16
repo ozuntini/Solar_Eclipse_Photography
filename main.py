@@ -67,7 +67,7 @@ class EclipsePhotographyController:
             # Setup logging
             log_file = self.options.get('log_file', 'eclipse_oz.log')
             log_level = self.options.get('log_level', 'INFO')
-            
+
             self.logger = setup_logging(log_level, log_file)
             self.logger.info(f"=== {APP_NAME} v{APP_VERSION} ===")
             self.logger.info(f"Initializing with config: {self.config_file}")
@@ -147,7 +147,7 @@ class EclipsePhotographyController:
                         f"Failed to clean up journal file '{journal_file}': {cleanup_error}"
                     )
                 return False
-            self.logger.info(f"Action journal: {journal_file}")
+            self.logger.info(f"Action journal: {journal_file} is initialized")
 
             # Initialize action scheduler
             self.scheduler = ActionScheduler(

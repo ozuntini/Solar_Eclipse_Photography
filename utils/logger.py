@@ -4,6 +4,7 @@ Logging configuration for Eclipse Photography Controller.
 Provides centralized logging setup with color support and file output.
 """
 
+from datetime import datetime
 import logging
 import sys
 from pathlib import Path
@@ -65,6 +66,13 @@ def setup_logging(level: str = "INFO",
     console_handler.setFormatter(console_formatter)
     logger.addHandler(console_handler)
     
+    # If log_file already exists, rotate it
+    if log_file and Path(log_file).exists():
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        rotated_name = f"{log_file}.{timestamp}"
+        Path(log_file).rename(rotated_name)
+        print(f"Rotated existing log file to {rotated_name}")
+
     # Create file handler if requested
     if log_file:
         log_path = Path(log_file)
