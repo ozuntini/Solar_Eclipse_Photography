@@ -614,9 +614,6 @@ class ActionScheduler:
                     break
                 remaining += 86400
 
-            if remaining <= 0:
-                break
-
             self._run_camera_health_monitor()
             time.sleep(min(0.25, remaining))
 
