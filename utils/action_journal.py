@@ -192,6 +192,29 @@ class ActionJournal:
             "details": details,
         })
 
+    def log_camera_health(
+        self,
+        camera_id: int,
+        battery_percentage: Optional[int],
+        last_filename: Optional[str],
+        last_photo_time: Optional[str],
+    ) -> None:
+        """Log periodic camera health information."""
+        details = self._base_details()
+        details.update({
+            "camera_id": camera_id,
+            "battery_percentage": battery_percentage,
+            "last_filename": last_filename,
+            "last_photo_time": last_photo_time,
+        })
+        self._write_entry({
+            "event": "CAMERA_HEALTH",
+            "status": "INFO",
+            "current_action": None,
+            "next_action": None,
+            "details": details,
+        })
+
     def close(self) -> None:
         """Flush and close the journal file."""
         with self._lock:

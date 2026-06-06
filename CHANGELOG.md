@@ -7,6 +7,16 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [Version 3.0.1] - 2026-06-06
+### Ajouté (Added)
+- Monitoring périodique de santé caméra (`CAMERA_HEALTH`) avec batterie, dernier fichier photo et horodatage de la dernière photo.
+- Nouveau module `scheduling/camera_health_monitor.py`.
+
+### Modifié (Changed)
+- Intégration du monitoring santé caméra dans `ActionScheduler` pendant les périodes d'attente et entre actions.
+- Ajout de `ActionJournal.log_camera_health()` pour journalisation JSON Lines structurée.
+- Mise à jour de `README.md` pour documenter le monitoring santé caméra.
+
 ## [Version 3.0.0] - 2026-06-16
 ### Ajouté (Added)
 - Versioning de l'application

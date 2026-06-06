@@ -17,6 +17,7 @@ from utils.constants import DEFAULT_CAPTURE_TARGET, DEFAULT_ISO, DEFAULT_APERTUR
 
 from .time_calculator import TimeCalculator
 from .action_types import create_action, ActionType
+from .camera_health_monitor import CameraHealthMonitor
 from config.eclipse_config import ActionConfig, CameraSettings
 from hardware.multi_camera_manager import MultiCameraManager
 from hardware.camera_controller import format_gphoto2_aperture, format_gphoto2_shutter
@@ -48,6 +49,11 @@ class ActionScheduler:
         self.test_mode = test_mode
         self.journal = journal
         self.logger = logging.getLogger('action_scheduler')
+        self.camera_health_monitor = (
+            CameraHealthMonitor(camera_manager, time_calculator, journal)
+            if journal is not None
+            else None
+        )
         
         # Statistics tracking
         self.actions_executed = 0
@@ -141,6 +147,8 @@ class ActionScheduler:
             if self.journal:
                 self.journal.log_action_start(action_index, action_config, next_action_config)
 
+            self._run_camera_health_monitor()
+
             # Route to appropriate execution method
             if action.action_type == ActionType.PHOTO:
                 success = self.execute_photo_action(action_config, next_action_config, action_index)
@@ -156,6 +164,8 @@ class ActionScheduler:
             
             if self.journal:
                 self.journal.log_action_complete(action_index, action_config, next_action_config, success)
+
+            self._run_camera_health_monitor()
 
             if success:
                 self.actions_executed += 1
@@ -191,7 +201,7 @@ class ActionScheduler:
             self.logger.info(f"Filter action scheduled for {trigger_time}")
 
             # Wait until trigger time
-            self.time_calculator.wait_until(trigger_time)
+            self._wait_until_action_time(trigger_time)
 
             # Se connecter
             if panel.connect():
@@ -269,14 +279,15 @@ class ActionScheduler:
                 if early_seconds < 0:
                     early_seconds += 86400
                 early_trigger = self.time_calculator.seconds_to_time(early_seconds)
-                self.time_calculator.wait_until(early_trigger)
+                self._wait_until_action_time(early_trigger)
                 self._apply_mirror_lockup(action.mlu_delay)
             else:
-                self.time_calculator.wait_until(trigger_time)
+                self._wait_until_action_time(trigger_time)
             
             # Execute capture
             self.logger.info(f"Triggering photo capture at {datetime.now().time()}")
             capture_results = self.camera_manager.capture_all(self.test_mode)
+            self._record_last_capture_results(capture_results)
             
             # Count successful captures
             successful_captures = sum(1 for result in capture_results.values() if result is not None)
@@ -342,9 +353,9 @@ class ActionScheduler:
                 if wait_target_seconds < 0:
                     wait_target_seconds += 86400
                 wait_target = self.time_calculator.seconds_to_time(wait_target_seconds)
-                self.time_calculator.wait_until(wait_target)
+                self._wait_until_action_time(wait_target)
             else:
-                self.time_calculator.wait_until(start_time)
+                self._wait_until_action_time(start_time)
             
             # Execute loop
             loop_start_time = time.time()
@@ -352,6 +363,7 @@ class ActionScheduler:
             capture_count = 0
             
             while True:
+                self._run_camera_health_monitor()
                 current_time = datetime.now().time()
                 current_seconds = self.time_calculator.time_to_seconds(current_time)
                 end_seconds = self.time_calculator.time_to_seconds(end_time)
@@ -376,6 +388,7 @@ class ActionScheduler:
                     
                     # Capture with all cameras
                     capture_results = self.camera_manager.capture_all(self.test_mode)
+                    self._record_last_capture_results(capture_results)
                     
                     # Count successful captures
                     successful_captures = sum(1 for result in capture_results.values() if result is not None)
@@ -445,12 +458,13 @@ class ActionScheduler:
                 return False
             
             # Wait for start time
-            self.time_calculator.wait_until(start_time)
+            self._wait_until_action_time(start_time)
             
             # Execute interval captures
             interval_start_time = time.time()
             
             for i in range(photo_count):
+                self._run_camera_health_monitor()
                 current_time = datetime.now().time()
                 
                 self.logger.info(f"Interval capture {i + 1}/{photo_count} at {current_time}")
@@ -461,6 +475,7 @@ class ActionScheduler:
                 
                 # Capture with all cameras
                 capture_results = self.camera_manager.capture_all(self.test_mode)
+                self._record_last_capture_results(capture_results)
                 
                 # Count successful captures
                 successful_captures = sum(1 for result in capture_results.values() if result is not None)
@@ -578,6 +593,42 @@ class ActionScheduler:
             
         except Exception as e:
             self.logger.error(f"Error applying mirror lockup: {e}")
+
+    def _wait_until_action_time(self, target_time: time_obj) -> None:
+        """Wait until target time and run monitor checks during idle periods."""
+        if not self.camera_health_monitor:
+            self.time_calculator.wait_until(target_time)
+            return
+
+        while True:
+            now = datetime.now().time()
+            now_seconds = self.time_calculator.time_to_seconds(now)
+            target_seconds = self.time_calculator.time_to_seconds(target_time)
+            remaining = target_seconds - now_seconds
+
+            if -30 <= remaining <= 0:
+                break
+
+            if remaining < -30:
+                if abs(remaining) < 43200:
+                    break
+                remaining += 86400
+
+            if remaining <= 0:
+                break
+
+            self._run_camera_health_monitor()
+            time.sleep(min(0.25, remaining))
+
+    def _run_camera_health_monitor(self) -> None:
+        """Run periodic camera health monitoring when enabled."""
+        if self.camera_health_monitor:
+            self.camera_health_monitor.log_if_due()
+
+    def _record_last_capture_results(self, capture_results: Dict[int, Optional[str]]) -> None:
+        """Forward successful captures to camera health monitor state."""
+        if self.camera_health_monitor:
+            self.camera_health_monitor.update_last_photos(capture_results)
     
     def get_execution_stats(self) -> Dict[str, Any]:
         """
