@@ -260,7 +260,7 @@ class ConfigParser:
             start_time = self._parse_time_string(fields[3], line_num)
             
             if action_type == 'Filter':
-                cover = int(fields[camera_offset]) if fields[camera_offset] and fields[camera_offset] != '-' else None
+                cover_action = str(fields[camera_offset]) if fields[camera_offset] and fields[camera_offset] != '-' else None
             else:
                 # Camera settings at detected offset
                 aperture = float(fields[camera_offset]) if fields[camera_offset] and fields[camera_offset] != '-' else None
@@ -294,7 +294,9 @@ class ConfigParser:
                     time_ref=time_ref,
                     start_operator=start_operator,
                     start_time=start_time,
-                    cover=cover,  # Using aperture field to indicate filter state (1=open, 0=close)
+                    # For Filter actions, we use the aperture field to indicate cover state (O=open, C=close)
+                    # Convert cover action to 1 for open and 0 for close
+                    cover=1 if cover_action == 'O' else 0,  # Using aperture field to indicate filter state (O=open, C=close) default to 0 (close) if not specified
                 )
             
             elif action_type in ['Boucle', 'Interval']:

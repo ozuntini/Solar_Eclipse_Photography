@@ -7,7 +7,7 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/).
 
 ---
 
-## [Version 3.0.0] - 2026-05-15
+## [Version 3.0.0] - 2026-06-16
 ### Ajouté (Added)
 - Versioning de l'application
 - Entête du fichier Changelog.md
@@ -16,6 +16,7 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/).
 
 ### Modifié (Changed)
 - Formatage du fichier Changelog
+- Codage de l'ouverture et fermeture du filtre dans le script. Maintenant C = Close/Fermer - O = Open/ouvrir. Afin de simplifier la lecture
 
 ### Corrigé (Fixed)
 - 
