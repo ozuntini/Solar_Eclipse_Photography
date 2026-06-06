@@ -180,8 +180,9 @@ python/
 ├── scheduling/                 # Planification et exécution
 │   ├── __init__.py             # Exports
 │   ├── action_scheduler.py     # Exécution d'actions
-│   ├── time_calculator.py      # Calculs temporels
-│   └── action_types.py         # Définitions d'actions
+│   ├── action_types.py         # Définitions d'actions
+│   ├── camera_health_monitor.py# Monitoring santé caméra
+│   └── time_calculator.py      # Calculs temporels
 ├── utils/                      # Utilitaires
 │   ├── __init__.py             # Exports publics
 │   ├── constants.py            # Constantes globales
