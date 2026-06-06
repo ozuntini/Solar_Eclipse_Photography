@@ -56,3 +56,25 @@ def test_scheduled_at_none_without_circumstance(tmp_path):
     action_start_entry = next(item for item in entries if item["event"] == "ACTION_START")
 
     assert action_start_entry["current_action"]["scheduled_at"] is None
+
+
+def test_log_camera_health_entry(tmp_path):
+    journal_path = tmp_path / "journal.jsonl"
+    journal = ActionJournal(str(journal_path), test_mode=True)
+
+    journal.log_camera_health(
+        camera_id=1,
+        battery_percentage=87,
+        last_filename="IMG_1234.CR3",
+        last_photo_time="2026-08-12T16:01:00",
+    )
+    journal.close()
+
+    entries = _load_entries(journal_path)
+    camera_health_entry = next(item for item in entries if item["event"] == "CAMERA_HEALTH")
+
+    assert camera_health_entry["status"] == "INFO"
+    assert camera_health_entry["details"]["camera_id"] == 1
+    assert camera_health_entry["details"]["battery_percentage"] == 87
+    assert camera_health_entry["details"]["last_filename"] == "IMG_1234.CR3"
+    assert camera_health_entry["details"]["last_photo_time"] == "2026-08-12T16:01:00"

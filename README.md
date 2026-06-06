@@ -43,6 +43,7 @@ Il permet le contrôle automatisé de plusieurs appareils photo Canon pour la ph
 - **Gestion d'erreurs** : Isolation des pannes par appareil
 - **Logging avancé** : Traçabilité complète des opérations
 - **Validation système** : Vérifications automatiques pré-séquence
+- **Monitoring santé caméras** : Journalisation périodique `CAMERA_HEALTH` (batterie, dernier fichier, heure), avec exclusion automatique entre `C2-1min` et `C3+1min`
 
 ## Installation
 
@@ -179,8 +180,9 @@ python/
 ├── scheduling/                 # Planification et exécution
 │   ├── __init__.py             # Exports
 │   ├── action_scheduler.py     # Exécution d'actions
-│   ├── time_calculator.py      # Calculs temporels
-│   └── action_types.py         # Définitions d'actions
+│   ├── action_types.py         # Définitions d'actions
+│   ├── camera_health_monitor.py# Monitoring santé caméra
+│   └── time_calculator.py      # Calculs temporels
 ├── utils/                      # Utilitaires
 │   ├── __init__.py             # Exports publics
 │   ├── constants.py            # Constantes globales
@@ -305,6 +307,12 @@ validator = SystemValidator()
 print(f'Système OK: {validator.validate_system()}')
 "
 ```
+
+Le journal d'actions JSON Lines inclut maintenant des événements `CAMERA_HEALTH` avec :
+- `camera_id`
+- `battery_percentage`
+- `last_filename`
+- `last_photo_time`
 
 ## Performance et limitations
 

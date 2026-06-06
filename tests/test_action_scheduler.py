@@ -61,6 +61,19 @@ class TestActionScheduler(unittest.TestCase):
         self.assertEqual(self.scheduler.actions_executed, 0)
         self.assertEqual(self.scheduler.photos_taken, 0)
         self.assertEqual(self.scheduler.execution_errors, 0)
+
+    @patch('scheduling.action_scheduler.CameraHealthMonitor')
+    def test_initialization_creates_camera_health_monitor_with_journal(self, mock_monitor_class):
+        journal = Mock()
+        scheduler = ActionScheduler(
+            self.camera_manager,
+            self.time_calculator,
+            test_mode=True,
+            journal=journal,
+        )
+
+        mock_monitor_class.assert_called_once_with(self.camera_manager, self.time_calculator, journal)
+        self.assertIsNotNone(scheduler.camera_health_monitor)
     
     @patch('scheduling.action_scheduler.time')
     def test_execute_photo_action_absolute_time(self, mock_time):
@@ -81,7 +94,7 @@ class TestActionScheduler(unittest.TestCase):
         mock_time.time.return_value = 1000
         
         # Mock wait_until to not actually wait
-        with patch.object(self.time_calculator, 'wait_until'):
+        with patch.object(self.scheduler, '_wait_until_action_time'):
             result = self.scheduler.execute_photo_action(action)
         
         self.assertTrue(result)
@@ -105,7 +118,7 @@ class TestActionScheduler(unittest.TestCase):
         )
         
         # Mock wait_until to not actually wait
-        with patch.object(self.time_calculator, 'wait_until'):
+        with patch.object(self.scheduler, '_wait_until_action_time'):
             result = self.scheduler.execute_photo_action(action)
         
         self.assertTrue(result)
@@ -131,11 +144,33 @@ class TestActionScheduler(unittest.TestCase):
         # Mock all cameras failing
         self.camera_manager.capture_all.return_value = {0: None, 1: None}
         
-        with patch.object(self.time_calculator, 'wait_until'):
+        with patch.object(self.scheduler, '_wait_until_action_time'):
             result = self.scheduler.execute_photo_action(action)
         
         self.assertFalse(result)
         self.assertEqual(self.scheduler.photos_taken, 0)
+
+    def test_execute_photo_action_updates_camera_health_monitor_capture_info(self):
+        action = ActionConfig(
+            action_type="Photo",
+            time_ref="-",
+            start_operator="",
+            start_time=time(16, 0, 0),
+            aperture=8.0,
+            iso=1600,
+            shutter_speed=0.008,
+        )
+
+        self.scheduler.camera_health_monitor = Mock()
+        self.scheduler.camera_health_monitor.log_if_due.return_value = False
+
+        with patch.object(self.time_calculator, 'wait_until'):
+            result = self.scheduler.execute_photo_action(action)
+
+        self.assertTrue(result)
+        self.scheduler.camera_health_monitor.update_last_photos.assert_called_once_with(
+            self.camera_manager.capture_all.return_value
+        )
     
     @patch('scheduling.action_scheduler.time')
     def test_execute_loop_action(self, mock_time):
