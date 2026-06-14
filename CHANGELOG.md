@@ -29,7 +29,7 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/).
 - Codage de l'ouverture et fermeture du filtre dans le script. Maintenant C = Close/Fermer - O = Open/ouvrir. Afin de simplifier la lecture
 
 ### Corrigé (Fixed)
-- 
+- Correction du manuel d'utilisation sur la commande Filter
 
 ### Supprimé (Removed)
 - 

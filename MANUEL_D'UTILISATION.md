@@ -230,7 +230,7 @@ Position|Nom|Valeur|Description
 4.1|Hd|0-23|Heure de début de la séquence
 4.2|Md|0-59|Minute de début de la séquence
 4.3|Sd|0-59|Seconde de début de la séquence
-5|Act|C ou O|C => ouvre, C => ferme
+5|Act|C ou O|O => ouvre, C => ferme
 |||
 
 ---
