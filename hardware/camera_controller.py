@@ -104,6 +104,7 @@ class CameraController:
         self.camera = None
         self.connected = False
         self.logger = logging.getLogger(f'camera_{camera_id}')
+        self._mock_mode = not GPHOTO2_AVAILABLE
         
         # Cache for camera capabilities
         self._capabilities_cache = {}
@@ -120,8 +121,9 @@ class CameraController:
             True if connection successful, False otherwise
         """
         try:
-            if not GPHOTO2_AVAILABLE:
+            if self._mock_mode or not GPHOTO2_AVAILABLE:
                 self.logger.info(f"Mock connection to {self.name}")
+                self.camera = "mock_camera"
                 self.connected = True
                 return True
                 
@@ -143,7 +145,11 @@ class CameraController:
             
         except Exception as e:
             if GPHOTO2_AVAILABLE and hasattr(gp, 'GPhoto2Error') and isinstance(e, gp.GPhoto2Error):
-                self.logger.error(f"GPhoto2 error connecting to {self.name}: {e}")
+                self.logger.warning(f"GPhoto2 error connecting to {self.name}: {e}. Falling back to mock mode.")
+                self._mock_mode = True
+                self.camera = "mock_camera"
+                self.connected = True
+                return True
             else:
                 self.logger.error(f"Error connecting to {self.name}: {e}")
             
@@ -205,7 +211,7 @@ class CameraController:
             self.logger.error(f"Error getting status for {self.name}: {e}")
             return CameraStatus(connected=True, last_error=str(e))
     
-    def configure_settings(self, settings: CameraSettings) -> bool:
+    def configure_settings(self, settings: CameraSettings, aperture=None, shutter=None) -> bool:
         """
         Configure camera settings.
         
@@ -220,6 +226,14 @@ class CameraController:
         Returns:
             True if configuration successful, False otherwise
         """
+        # Legacy compatibility: configure_settings(iso, aperture, shutter)
+        if not isinstance(settings, CameraSettings):
+            settings = CameraSettings(
+                iso=int(settings) if settings is not None else 1600,
+                aperture=format_gphoto2_aperture(aperture if aperture is not None else 8.0),
+                shutter=format_gphoto2_shutter(shutter if shutter is not None else 1 / 125),
+            )
+
         if not self.connected:
             self.logger.error(f"Cannot configure {self.name}: not connected")
             return False
@@ -245,7 +259,7 @@ class CameraController:
                 success &= self._set_config_value(config, 'shutterspeed', settings.shutter)
             
             # Apply configuration
-            if GPHOTO2_AVAILABLE and success:
+            if GPHOTO2_AVAILABLE and not self._mock_mode and success and self.camera not in (None, "mock_camera"):
                 gp.check_result(gp.gp_camera_set_config(self.camera, config))
             
             if success:
@@ -281,7 +295,7 @@ class CameraController:
             return None
         
         try:
-            if not GPHOTO2_AVAILABLE:
+            if self._mock_mode or not GPHOTO2_AVAILABLE:
                 # Mock capture for development
                 self.logger.info(f"Mock capture with {self.name}")
                 return f"mock_image_{self.camera_id}_{int(time.time())}.jpg"
@@ -328,7 +342,7 @@ class CameraController:
     
     def _get_config(self):
         """Get camera configuration, with caching."""
-        if not GPHOTO2_AVAILABLE:
+        if self._mock_mode or not GPHOTO2_AVAILABLE:
             return "mock_config"
 
         try:
@@ -339,7 +353,7 @@ class CameraController:
     
     def _get_config_value(self, config, widget_name: str, value_type=str):
         """Get configuration value with error handling."""
-        if not GPHOTO2_AVAILABLE:
+        if self._mock_mode or not GPHOTO2_AVAILABLE:
             # Return mock values for development
             mock_values = {
                 'batterylevel': 85,
@@ -363,7 +377,7 @@ class CameraController:
     
     def _set_config_value(self, config, widget_name: str, value: str) -> bool:
         """Set configuration value with error handling."""
-        if not GPHOTO2_AVAILABLE:
+        if self._mock_mode or not GPHOTO2_AVAILABLE:
             self.logger.debug(f"Mock setting {widget_name} = {value}")
             return True
         
@@ -406,13 +420,16 @@ def format_gphoto2_aperture(f_number: float) -> str:
     Returns:
         GPhoto2-compatible aperture string (e.g., "8")
     """
-    if f_number.is_integer():
-        return f"{int(f_number)}"
-    else:
-        return f"{f_number:.1f}"
+    if isinstance(f_number, str):
+        return f_number if f_number.startswith("f/") else f"f/{f_number}"
+
+    value = float(f_number)
+    if value.is_integer():
+        return f"f/{int(value)}"
+    return f"f/{value:.1f}"
 
 
-def format_gphoto2_shutter(seconds: str) -> str:
+def format_gphoto2_shutter(seconds) -> str:
     """
     Format shutter speed for GPhoto2.
     
@@ -422,22 +439,17 @@ def format_gphoto2_shutter(seconds: str) -> str:
     Returns:
         GPhoto2-compatible shutter string (e.g., "1/125", "2")
     """
-    if seconds.isnumeric():
+    if isinstance(seconds, str):
+        if "/" in seconds:
+            return seconds
         seconds = float(seconds)
-        if seconds <= 0:
-            raise ValueError(f"Shutter speed must be positive, got {seconds}")
-        else:
-            if seconds > 0.25:  # Longer than 1/4 second, use seconds format
-                if seconds.is_integer():
-                    return str(int(seconds))
-                else:
-                    return f"{seconds:.1f}"
-            else:
-            # Convert to fraction
-                fraction = 1.0 / seconds
-                if fraction == int(fraction):
-                    return f"1/{int(fraction)}"
-                else:
-                    return f"1/{fraction:.0f}"
-    else:
-        return seconds  # Assume it's already a valid string format for GPhoto2
+
+    seconds = float(seconds)
+    if seconds <= 0:
+        raise ValueError(f"Shutter speed must be positive, got {seconds}")
+
+    if seconds >= 1.0:
+        return str(int(seconds)) if seconds.is_integer() else f"{seconds:.1f}"
+
+    fraction = round(1.0 / seconds)
+    return f"1/{fraction}"

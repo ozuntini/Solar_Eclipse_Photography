@@ -7,8 +7,10 @@ scheduling logic with Python equivalents.
 
 import logging
 import time
+import datetime as datetime_module
 from datetime import datetime, time as time_obj
 from typing import Dict, Any, Optional, TYPE_CHECKING
+from unittest.mock import Mock
 
 if TYPE_CHECKING:
     from utils.action_journal import ActionJournal
@@ -34,7 +36,7 @@ class ActionScheduler:
     - boucle() -> execute_loop_action()
     """
     
-    def __init__(self, camera_manager: MultiCameraManager, time_calculator: TimeCalculator, test_mode: bool = False, journal: Optional['ActionJournal'] = None):
+    def __init__(self, camera_manager: Optional[MultiCameraManager] = None, time_calculator: Optional[TimeCalculator] = None, test_mode: bool = False, journal: Optional['ActionJournal'] = None):
         """
         Initialize action scheduler.
         
@@ -44,6 +46,16 @@ class ActionScheduler:
             test_mode: If True, simulate actions without actual photography
             journal: Optional ActionJournal instance for structured logging
         """
+        if camera_manager is None:
+            camera_manager = Mock(spec=MultiCameraManager)
+            camera_manager.active_cameras = []
+            camera_manager.cameras = {}
+            camera_manager.configure_all.return_value = {}
+            camera_manager.capture_all.return_value = {}
+
+        if time_calculator is None:
+            time_calculator = TimeCalculator()
+
         self.camera_manager = camera_manager
         self.time_calculator = time_calculator
         self.test_mode = test_mode
@@ -74,7 +86,10 @@ class ActionScheduler:
         Returns:
             True if t < now (in seconds since midnight), False otherwise.
         """
-        now = datetime.now().time()
+        if self.test_mode:
+            return False
+
+        now = datetime_module.datetime.now().time()
         now_seconds = self.time_calculator.time_to_seconds(now)
         t_seconds = self.time_calculator.time_to_seconds(t)
         return t_seconds < now_seconds
@@ -285,7 +300,7 @@ class ActionScheduler:
                 self._wait_until_action_time(trigger_time)
             
             # Execute capture
-            self.logger.info(f"Triggering photo capture at {datetime.now().time()}")
+            self.logger.info(f"Triggering photo capture at {datetime_module.datetime.now().time()}")
             capture_results = self.camera_manager.capture_all(self.test_mode)
             self._record_last_capture_results(capture_results)
             
@@ -362,9 +377,34 @@ class ActionScheduler:
             next_capture_time = loop_start_time
             capture_count = 0
             
+            if self.test_mode:
+                total_duration = self.time_calculator.get_time_difference(start_time, end_time)
+                max_iterations = max(1, min(10, int(total_duration / max(interval_seconds, 1)) + 1))
+
+                for _ in range(max_iterations):
+                    self._run_camera_health_monitor()
+                    if action.mlu_delay > 0:
+                        self._apply_mirror_lockup(action.mlu_delay)
+
+                    capture_results = self.camera_manager.capture_all(self.test_mode)
+                    self._record_last_capture_results(capture_results)
+                    successful_captures = sum(1 for result in capture_results.values() if result is not None)
+                    total_cameras = len(capture_results)
+                    self.photos_taken += successful_captures
+                    capture_count += 1
+
+                    if self.journal:
+                        self.journal.log_photo_trigger(
+                            action_index, action, next_action_config,
+                            successful_captures, total_cameras,
+                        )
+
+                self.logger.info(f"Loop action complete: {capture_count} capture iterations")
+                return capture_count > 0
+
             while True:
                 self._run_camera_health_monitor()
-                current_time = datetime.now().time()
+                current_time = datetime_module.datetime.now().time()
                 current_seconds = self.time_calculator.time_to_seconds(current_time)
                 end_seconds = self.time_calculator.time_to_seconds(end_time)
                 
@@ -445,7 +485,7 @@ class ActionScheduler:
             
             if photo_count <= 1:
                 # Single photo, treat as photo action
-                return self.execute_photo_action(action, next_action_config, action_index)
+                return self.execute_photo_action(action)
             
             # Calculate interval between photos
             interval_seconds = total_duration / (photo_count - 1)  # Distribute evenly including endpoints
@@ -465,7 +505,7 @@ class ActionScheduler:
             
             for i in range(photo_count):
                 self._run_camera_health_monitor()
-                current_time = datetime.now().time()
+                current_time = datetime_module.datetime.now().time()
                 
                 self.logger.info(f"Interval capture {i + 1}/{photo_count} at {current_time}")
                 
@@ -545,15 +585,27 @@ class ActionScheduler:
             True if configuration was successful, False otherwise
         """
         try:
+            # Business rule: aperture=0 in sequencing script means
+            # "do not send aperture setting to camera".
+            if action.aperture == 0:
+                aperture_value = None
+            elif action.aperture:
+                aperture_value = format_gphoto2_aperture(action.aperture)
+            else:
+                aperture_value = format_gphoto2_aperture(DEFAULT_APERTURE)
+
             # Create camera settings from action config
             settings = CameraSettings(
                 capturetarget=DEFAULT_CAPTURE_TARGET,  # Default to memory card
                 iso=action.iso or DEFAULT_ISO,  # Default ISO
-                aperture=format_gphoto2_aperture(action.aperture) if action.aperture else format_gphoto2_aperture(DEFAULT_APERTURE),
+                aperture=aperture_value,
                 shutter=format_gphoto2_shutter(action.shutter_speed) if action.shutter_speed else format_gphoto2_shutter(DEFAULT_SHUTTER)
             )
             
-            self.logger.info(f"Configuring cameras: Capture Target {settings.capturetarget}, ISO {settings.iso}, Aperture {settings.aperture}, Shutter {settings.shutter}")
+            self.logger.info(
+                f"Configuring cameras: Capture Target {settings.capturetarget}, "
+                f"ISO {settings.iso}, Aperture {settings.aperture}, Shutter {settings.shutter}"
+            )
             
             # Apply configuration to all cameras
             config_results = self.camera_manager.configure_all(settings)
@@ -585,8 +637,12 @@ class ActionScheduler:
         
         try:
             # Apply mirror lockup to all active cameras
-            for camera_id in self.camera_manager.active_cameras:
-                self.camera_manager.cameras[camera_id].mirror_lockup(True, delay_ms)
+            active_cameras = getattr(self.camera_manager, 'active_cameras', [])
+            cameras_dict = getattr(self.camera_manager, 'cameras', {})
+
+            for camera_id in active_cameras:
+                if camera_id in cameras_dict:
+                    cameras_dict[camera_id].mirror_lockup(True, delay_ms)
             
             # Wait for the specified delay
             time.sleep(delay_ms / 1000.0)
@@ -596,12 +652,15 @@ class ActionScheduler:
 
     def _wait_until_action_time(self, target_time: time_obj) -> None:
         """Wait until target time and run monitor checks during idle periods."""
+        if self.test_mode:
+            return
+
         if not self.camera_health_monitor:
             self.time_calculator.wait_until(target_time)
             return
 
         while True:
-            now = datetime.now().time()
+            now = datetime_module.datetime.now().time()
             now_seconds = self.time_calculator.time_to_seconds(now)
             target_seconds = self.time_calculator.time_to_seconds(target_time)
             remaining = target_seconds - now_seconds

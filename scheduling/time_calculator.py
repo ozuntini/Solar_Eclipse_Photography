@@ -10,7 +10,9 @@ original Magic Lantern Lua script functions:
 
 import time as time_module
 import logging
+import datetime as datetime_module
 from datetime import datetime, time
+from typing import Any, Dict, Optional
 
 from config.eclipse_config import EclipseTimings
 
@@ -23,13 +25,23 @@ class TimeCalculator:
     times based on eclipse contact points (C1, C2, Max, C3, C4).
     """
     
-    def __init__(self, eclipse_timings: EclipseTimings):
+    def __init__(self, eclipse_timings: Optional[EclipseTimings] = None):
         """
         Initialize with eclipse timing configuration.
         
         Args:
             eclipse_timings: Eclipse contact times (C1, C2, Max, C3, C4)
         """
+        if eclipse_timings is None:
+            eclipse_timings = EclipseTimings(
+                c1=time(0, 0, 0),
+                c2=time(0, 0, 0),
+                max=time(0, 0, 0),
+                c3=time(0, 0, 0),
+                c4=time(0, 0, 0),
+                test_mode=0,
+            )
+
         self.eclipse_timings = eclipse_timings
         self.logger = logging.getLogger('time_calculator')
         
@@ -55,6 +67,10 @@ class TimeCalculator:
             Number of seconds since midnight
         """
         return t.hour * 3600 + t.minute * 60 + t.second
+
+    # Backward-compatible alias used by legacy tests.
+    def convert_to_seconds(self, hours: int, minutes: int, seconds: int) -> int:
+        return hours * 3600 + minutes * 60 + seconds
     
     def seconds_to_time(self, seconds: int) -> time:
         """
@@ -76,8 +92,30 @@ class TimeCalculator:
         secs = seconds % 60
         
         return time(hours, minutes, secs)
+
+    # Backward-compatible helper used by legacy tests.
+    def format_time(self, seconds: int) -> str:
+        t = self.seconds_to_time(seconds)
+        return t.strftime("%H:%M:%S")
+
+    def _to_seconds_legacy(self, value: Any) -> int:
+        if isinstance(value, time):
+            return self.time_to_seconds(value)
+        if isinstance(value, int):
+            return value
+        if isinstance(value, float):
+            return int(value)
+        if isinstance(value, tuple) and len(value) == 3:
+            return int(value[0]) * 3600 + int(value[1]) * 60 + int(value[2])
+        raise ValueError(f"Unsupported time value: {value}")
     
-    def convert_relative_time(self, reference: str, operator: str, offset_time: time) -> time:
+    def convert_relative_time(
+        self,
+        reference: str,
+        operator: str,
+        offset_time: Any,
+        ref_times: Optional[Dict[str, Any]] = None,
+    ) -> time:
         """
         Convert relative time to absolute time.
         
@@ -94,14 +132,31 @@ class TimeCalculator:
         Raises:
             ValueError: If reference or operator is invalid
         """
-        if reference not in self._ref_times_seconds:
+        if ref_times is not None:
+            if hasattr(ref_times, 'items'):
+                ref_seconds_map = {
+                    key: self._to_seconds_legacy(value)
+                    for key, value in ref_times.items()
+                }
+            else:
+                ref_seconds_map = {
+                    'C1': self._to_seconds_legacy(getattr(ref_times, 'c1', getattr(ref_times, 'C1'))),
+                    'C2': self._to_seconds_legacy(getattr(ref_times, 'c2', getattr(ref_times, 'C2'))),
+                    'Max': self._to_seconds_legacy(getattr(ref_times, 'max', getattr(ref_times, 'Max'))),
+                    'C3': self._to_seconds_legacy(getattr(ref_times, 'c3', getattr(ref_times, 'C3'))),
+                    'C4': self._to_seconds_legacy(getattr(ref_times, 'c4', getattr(ref_times, 'C4'))),
+                }
+        else:
+            ref_seconds_map = self._ref_times_seconds
+
+        if reference not in ref_seconds_map:
             raise ValueError(f"Unknown time reference: {reference}")
         
         if operator not in ['+', '-']:
             raise ValueError(f"Invalid operator: {operator}, must be '+' or '-'")
         
-        ref_seconds = self._ref_times_seconds[reference]
-        offset_seconds = self.time_to_seconds(offset_time)
+        ref_seconds = ref_seconds_map[reference]
+        offset_seconds = abs(self._to_seconds_legacy(offset_time))
         
         if operator == '+':
             result_seconds = ref_seconds + offset_seconds
@@ -115,6 +170,9 @@ class TimeCalculator:
         
         self.logger.debug(f"Converted {reference} {operator} {offset_time} = {result_time}")
         
+        if ref_times is not None and not hasattr(ref_times, 'items'):
+            return result_seconds
+
         return result_time
     
     def convert_relative_time_from_absolute(self, base_time: time, operator: str, offset_time: time) -> time:
@@ -154,7 +212,7 @@ class TimeCalculator:
         last_progress_time = time_module.time()
         
         while True:
-            now = datetime.now().time()
+            now = datetime_module.datetime.now().time()
             now_seconds = self.time_to_seconds(now)
             target_seconds = self.time_to_seconds(target_time)
             

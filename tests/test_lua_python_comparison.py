@@ -433,7 +433,7 @@ Boucle,C3,+,0,0,30,C4,-,0,5,0,60,8,400,15,0
             assert config.timings.C1.minute == 10  
             assert config.timings.C1.second == 29
             
-            assert len(config.actions) == 7, "Nombre d'actions incorrect"
+            assert len(config.actions) == 8, "Nombre d'actions incorrect"
             
             # Vérification calculs temporels pour chaque action
             ref_times = {

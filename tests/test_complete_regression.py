@@ -12,17 +12,17 @@ import tempfile
 from pathlib import Path
 
 # Import des modules de test spécialisés
-from test_lua_python_comparison import (
+from tests.test_lua_python_comparison import (
     TestTimeConversionComparison,
     TestConfigurationParsingComparison, 
 )
 
-from test_migration_validation import (
+from tests.test_migration_validation import (
     TestExactFunctionMigration,
     TestConfigurationCompatibility,
 )
 
-from test_behavior_compatibility import (
+from tests.test_behavior_compatibility import (
     TestActionBehaviorComparison,
     TestPerformanceRegression,
     TestRegressionSafety,
@@ -297,6 +297,15 @@ class TestComprehensiveRegression:
         compatibility_points = [
             "✅ Fonctions convert_second() - Identiques",
             "✅ Fonctions convert_time() - Identiques", 
+            "✅ Format de configuration compatible",
+            "✅ Parsing des actions préservé",
+            "✅ Calculs temporels cohérents",
+            "✅ Migration globale validée",
+        ]
+
+        for point in compatibility_points:
+            print(f"  {point}")
+
     def test_configuration_compatibility_regression(self):
         """Test régression de la compatibilité de configuration"""
         print("\n🔍 Test régression compatibilité configuration...")

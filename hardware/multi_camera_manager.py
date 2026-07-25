@@ -19,7 +19,7 @@ except ImportError:
     # Use mock from camera_controller
     from .camera_controller import gp
 
-from .camera_controller import CameraController
+from .camera_controller import CameraController, format_gphoto2_aperture, format_gphoto2_shutter
 from config.eclipse_config import CameraSettings, CameraStatus
 
 
@@ -91,6 +91,40 @@ class MultiCameraManager:
     def get_camera_count(self) -> int:
         """Get number of active cameras."""
         return len(self.active_cameras)
+
+    # ------------------------------------------------------------------
+    # Legacy compatibility helpers
+    # ------------------------------------------------------------------
+
+    def connect_all_cameras(self) -> List[int]:
+        """Legacy alias expected by older tests and scripts.
+
+        Returns active cameras if already discovered, otherwise performs
+        discovery and connection.
+        """
+        if self.active_cameras:
+            return self.active_cameras
+        return self.discover_cameras()
+
+    def capture_synchronized(self, _mode: str, iso: int, aperture: float, shutter_speed: float) -> List[str]:
+        """Legacy single-camera oriented synchronized capture API.
+
+        This compatibility method preserves historical behavior by returning
+        at most one capture path even if multiple cameras are connected.
+        """
+        settings = CameraSettings(
+            capturetarget="Memory card",
+            iso=int(iso),
+            aperture=format_gphoto2_aperture(aperture),
+            shutter=format_gphoto2_shutter(shutter_speed),
+        )
+
+        self.configure_all(settings)
+        capture_results = self.capture_all(test_mode=False)
+
+        # Keep legacy behavior (mono-camera-like return shape).
+        ordered = [capture_results[cid] for cid in sorted(capture_results.keys()) if capture_results[cid]]
+        return ordered[:1]
     
     def get_camera_names(self) -> Dict[int, str]:
         """Get mapping of camera IDs to names."""

@@ -8,6 +8,7 @@ import pytest
 import os
 import sys
 import tempfile
+from typing import Any, Dict
 
 # Ajouter le répertoire parent au path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -15,6 +16,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # Import des modules Python
 from config.parser import ConfigParser  # noqa: E402
 from scheduling.time_calculator import TimeCalculator  # noqa: E402
+from main import EclipsePhotographyController  # noqa: E402
 
 # Import du simulateur Lua
 from lua_simulator import run_lua_simulation, LuaSimulator  # noqa: E402

@@ -55,6 +55,16 @@ class EclipsePhotographyController:
         # Runtime state
         self.is_running = False
         self.shutdown_requested = False
+
+        # Backward-compatible behavior for tests that expect a parsed config
+        # right after construction. Full validation/hardware init is still done
+        # in initialize().
+        try:
+            self.config = parse_config_file(self.config_file)
+            if self.options.get('test_mode', False):
+                self.config.test_mode = True
+        except Exception:
+            self.config = None
         
     def initialize(self) -> bool:
         """

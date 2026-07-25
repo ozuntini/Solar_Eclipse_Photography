@@ -101,6 +101,19 @@ Interval,C3,-,00:00:30,+,00:02:00,5,-,-,8,400,0.004,1000
         
         with self.assertRaises(ConfigParserError):
             self.parser._parse_time_string("invalid", 1)
+
+    def test_parse_shutter_fraction_format(self):
+        """Test parsing of shutter speed fraction format (e.g. 1/500)."""
+        content = """# Test shutter fraction
+Config,14:41:05,16:02:49,16:03:53,16:04:58,17:31:03,0
+Photo,Max,-,00:00:10,-,-,-,-,-,4,1600,1/500,500
+"""
+
+        config_file = self._create_temp_config(content)
+        config = self.parser.parse_eclipse_config(config_file)
+
+        self.assertEqual(len(config.actions), 1)
+        self.assertAlmostEqual(config.actions[0].shutter_speed, 1 / 500)
     
     def test_missing_config_line(self):
         """Test error when Config line is missing."""

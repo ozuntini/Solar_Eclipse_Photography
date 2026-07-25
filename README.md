@@ -99,6 +99,8 @@ Photo,reference,operateur,temps,_,_,_,_,_,ouverture,iso,vitesse,mlu
 Boucle,reference,op_debut,temps_debut,op_fin,temps_fin,intervalle,_,_,ouverture,iso,vitesse,mlu
 Interval,reference,op_debut,temps_debut,op_fin,temps_fin,nombre,_,_,ouverture,iso,vitesse,mlu
 ```
+
+Note: si `ouverture` (aperture) vaut `0` dans une action, le parametre n'est pas envoye a l'appareil photo.
 C.F. **[MANUEL_D'UTILISATION.md](MANUEL_D'UTILISATION.md)** pour vous aider à la construction de ce script.
 
 ### Exemples de configuration

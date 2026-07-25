@@ -334,6 +334,26 @@ class TestActionScheduler(unittest.TestCase):
         self.assertEqual(call_args.iso, 1600)  # Default ISO
         self.assertEqual(call_args.aperture, "f/8")  # Default aperture
         self.assertEqual(call_args.shutter, "1/125")  # Default shutter
+
+    def test_configure_cameras_aperture_zero_not_sent(self):
+        """Test that aperture=0 means do not send aperture to cameras."""
+        action = ActionConfig(
+            action_type="Photo",
+            time_ref="-",
+            start_operator="",
+            start_time=time(16, 0, 0),
+            aperture=0,
+            iso=800,
+            shutter_speed=0.004,
+        )
+
+        result = self.scheduler._configure_cameras_for_action(action)
+        self.assertTrue(result)
+
+        call_args = self.camera_manager.configure_all.call_args[0][0]
+        self.assertEqual(call_args.iso, 800)
+        self.assertIsNone(call_args.aperture)
+        self.assertEqual(call_args.shutter, "1/250")
     
     def test_apply_mirror_lockup(self):
         """Test mirror lockup application."""

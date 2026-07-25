@@ -128,9 +128,9 @@ Position|Nom|Valeur|Description
 4.1|Hd|0-23|Heure de début de la séquence
 4.2|Md|0-59|Minute de début de la séquence
 4.3|Sd|0-59|Seconde de début de la séquence
-5|Aperture|Diaph.|Valeur du Diaphragme (2.8,8,11...)(*)
+5|Aperture|Diaph.|Valeur du Diaphragme (2.8,8,11...). Si la valeur est 0, le parametre ouverture n'est pas envoye au boitier.(*)
 6|ISO|Num.|Sensibilité du capteur (100, 800, 6400,...)(*)
-7|ShutterSpeed|Num.|Vitesse d'exposition en seconde (*) 
+7|ShutterSpeed|Num.|Vitesse d'exposition. Formats acceptes: secondes decimales (ex: 0.002) ou fraction (ex: 1/500).(*) 
 8|MLUDelay|Num.|Délais d'attente entre la montée du miroir et le déclenchement, en milliseconde. Si 0 pas de montée du miroir avant le déclenchement. 
 
 (*) Attention prendre des valeurs compatibles avec votre équipement. Sur Canon la vitesse est exprimée en seconde de 30s à 0.3s et en 1/n de 1/4 à 1/8000.
@@ -183,9 +183,9 @@ Position|Nom|Valeur|Description
 6.2|Mf|0-59|Minute de fin de la séquence (*)
 6.3|Sf|0-59|Seconde de fin de la séquence (*)
 7|Interval ou Number|Num. >= 1|Intervalle entre deux photos en seconde (*) ou nombre de photo à faire entre Hd et Hf
-8|Aperture|Diaph.|Valeur du Diaphragme (2.8,8,11...)(**)
+8|Aperture|Diaph.|Valeur du Diaphragme (2.8,8,11...). Si la valeur est 0, le parametre ouverture n'est pas envoye au boitier.(**)
 9|ISO|Num.|Sensibilité du capteur (100, 800, 6400,...)(**)
-10|ShutterSpeed|Num.|Vitesse d'exposition en seconde (**)
+10|ShutterSpeed|Num.|Vitesse d'exposition. Formats acceptes: secondes decimales (ex: 0.002) ou fraction (ex: 1/500).(**)
 11|MLUDelay|Num.|Délais d'attente entre la montée du miroir et le déclenchement, en milliseconde. Si 0 pas de montée du miroir avant le déclenchement. 
 
 (*) Uniquement utilisé par l'action "Boucle" et "Interval".  
