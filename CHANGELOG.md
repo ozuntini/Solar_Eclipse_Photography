@@ -11,15 +11,19 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/).
 ### Ajouté (Added)
 - Test unitaire pour valider que `aperture=0` n'envoie pas de valeur d'ouverture au boitier.
 - Test unitaire pour valider le parsing des vitesses au format fractionnaire (ex: `1/500`).
+- Conservation de la valeur littérale `ShutterSpeed` issue du script (ex: `1/4`, `0.3`, `1/500`) dans la configuration d'action.
 
 ### Modifié (Changed)
 - Mise à jour de `MANUEL_D'UTILISATION.md` pour documenter la règle `aperture=0` (ouverture non envoyée au boitier) et les formats `ShutterSpeed` acceptés (`0.002` et `1/500`).
 - Mise à jour de `README.md` pour rappeler la règle `aperture=0`.
+- Validation système des vitesses d'obturation basée sur la valeur littérale du script, sans normalisation flottante (ex: `1/4` reste `1/4`, `0.3` reste `0.3`).
 
 ### Corrigé (Fixed)
 - Dans `ActionScheduler`, si `aperture=0` dans le script de séquence, le paramètre ouverture n'est plus envoyé à l'appareil photo.
 - Dans `ConfigParser`, correction du parsing des vitesses d'obturation au format fractionnaire (`1/500`) en plus du format décimal en secondes.
 - Correction du plantage à l'initialisation sur les lignes `Photo` contenant `ShutterSpeed=1/500`.
+- Suppression des faux warnings `Unusual shutter speed` causés par la conversion flottante (ex: `1` devenu `1.0`).
+- Ajout de méthodes de compatibilité legacy dans `MultiCameraManager` (`connect_all_cameras`, `capture_synchronized`).
 
 ## [Version 3.0.1] - 2026-06-06
 ### Ajouté (Added)

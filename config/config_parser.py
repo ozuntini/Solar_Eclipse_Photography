@@ -287,6 +287,7 @@ class ConfigParser:
                 camera_offset = len(fields) - 4
                 aperture = float(fields[camera_offset]) if fields[camera_offset] and fields[camera_offset] != '-' else None
                 iso = int(float(fields[camera_offset + 1])) if fields[camera_offset + 1] and fields[camera_offset + 1] != '-' else None
+                shutter_speed_literal = self._parse_shutter_literal(fields[camera_offset + 2], line_num)
                 shutter_speed = self._parse_shutter_speed(fields[camera_offset + 2], line_num)
                 mlu_delay = int(float(fields[camera_offset + 3])) if fields[camera_offset + 3] and fields[camera_offset + 3] != '-' else 0
             
@@ -307,6 +308,7 @@ class ConfigParser:
                     aperture=aperture,
                     iso=iso,
                     shutter_speed=shutter_speed,
+                    shutter_speed_literal=shutter_speed_literal,
                     mlu_delay=mlu_delay
                 )
             
@@ -340,6 +342,7 @@ class ConfigParser:
                     aperture=aperture,
                     iso=iso,
                     shutter_speed=shutter_speed,
+                    shutter_speed_literal=shutter_speed_literal,
                     mlu_delay=mlu_delay
                 )
             
@@ -383,6 +386,17 @@ class ConfigParser:
         except ValueError as e:
             raise ConfigParserError(f"Invalid shutter speed '{value}': {e}", line_num)
 
+    def _parse_shutter_literal(self, value: str, line_num: int) -> Optional[str]:
+        """Keep shutter speed literal text from script for strict validation checks."""
+        if not value or value == '-':
+            return None
+
+        text = str(value).strip()
+
+        # Reuse numeric parser to validate that the literal is meaningful.
+        self._parse_shutter_speed(text, line_num)
+        return text
+
     def _parse_action_legacy_photo(self, fields: List[str], line_num: int) -> Optional[ActionConfig]:
         # Variant A (16 fields): camera settings start at index 12
         # Variant B (13 fields): camera settings start at index 9
@@ -396,6 +410,7 @@ class ConfigParser:
             aperture=float(fields[camera_idx]) if fields[camera_idx] != '-' else None,
             iso=int(float(fields[camera_idx + 1])) if fields[camera_idx + 1] != '-' else None,
             shutter_speed=self._parse_shutter_speed(fields[camera_idx + 2], line_num),
+            shutter_speed_literal=self._parse_shutter_literal(fields[camera_idx + 2], line_num),
             mlu_delay=int(float(fields[camera_idx + 3])) if fields[camera_idx + 3] != '-' else 0,
         )
 
@@ -430,6 +445,7 @@ class ConfigParser:
             aperture=float(fields[camera_idx]) if fields[camera_idx] != '-' else None,
             iso=int(float(fields[camera_idx + 1])) if fields[camera_idx + 1] != '-' else None,
             shutter_speed=self._parse_shutter_speed(fields[camera_idx + 2], line_num),
+            shutter_speed_literal=self._parse_shutter_literal(fields[camera_idx + 2], line_num),
             mlu_delay=int(float(fields[camera_idx + 3])) if fields[camera_idx + 3] != '-' else 0,
             # Keep end reference in sync with old semantics when different
             # by overriding time_ref only if it was provided explicitly.

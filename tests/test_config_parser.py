@@ -114,6 +114,7 @@ Photo,Max,-,00:00:10,-,-,-,-,-,4,1600,1/500,500
 
         self.assertEqual(len(config.actions), 1)
         self.assertAlmostEqual(config.actions[0].shutter_speed, 1 / 500)
+        self.assertEqual(config.actions[0].shutter_speed_literal, "1/500")
     
     def test_missing_config_line(self):
         """Test error when Config line is missing."""

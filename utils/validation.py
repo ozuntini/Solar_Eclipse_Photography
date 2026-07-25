@@ -363,8 +363,17 @@ class SystemValidator:
                 if action.aperture and (action.aperture < 1.0 or action.aperture > 32):
                     self.logger.warning(f"Action {i + 1}: Unusual aperture f/{action.aperture}")
                 
-                if action.shutter_speed and (action.shutter_speed not in GPHOTO2_SHUTTER_VALUES):
-                    self.logger.warning(f"Action {i + 1}: Unusual shutter speed {action.shutter_speed}s")
+                # Validate shutter speed using the literal script value when available
+                # to avoid false warnings caused by float normalization (e.g. 1 -> 1.0).
+                if action.shutter_speed_literal is not None:
+                    if action.shutter_speed_literal not in GPHOTO2_SHUTTER_VALUES:
+                        self.logger.warning(
+                            f"Action {i + 1}: Unusual shutter speed {action.shutter_speed_literal}"
+                        )
+                elif action.shutter_speed:
+                    normalized = str(action.shutter_speed)
+                    if normalized not in GPHOTO2_SHUTTER_VALUES:
+                        self.logger.warning(f"Action {i + 1}: Unusual shutter speed {normalized}")
             
             return True
             

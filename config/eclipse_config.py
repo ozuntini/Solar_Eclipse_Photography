@@ -74,6 +74,7 @@ class ActionConfig:
     aperture: Optional[float] = None      # f-number (e.g., 8.0 for f/8)
     iso: Optional[int] = None
     shutter_speed: Optional[float] = None # seconds (e.g., 0.008 for 1/125)
+    shutter_speed_literal: Optional[str] = None  # literal value from script (e.g., "1/500", "0.3")
     mlu_delay: int = 0                    # Mirror lockup delay in milliseconds
     camera_ids: Optional[List[int]] = None # Specific camera IDs (future use)
     cover: Optional[int] = None           # For Filter action: 1=open, 0=close
