@@ -7,6 +7,15 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [Version 3.0.3] - 2026-08-05
+### Ajouté (Added)
+- Résolution dynamique de la valeur d'ouverture en fonction des choix réellement exposés par le widget GPhoto2 (compatibilité entre formats `f/4`, `4` et `4.0`).
+- Tests unitaires dédiés à la correspondance des valeurs d'ouverture (match exact, match numérique, absence de match) dans `tests/test_camera_controller.py`.
+
+### Corrigé (Fixed)
+- Correction de l'échec de configuration caméra (`[-1] Unspecified error`) observé quand une ouverture explicite (ex: `f/4`) est demandée et que le boitier attend un libellé différent.
+- Envoi d'une valeur d'ouverture désormais alignée sur une option valide du boitier avant appel à `gp_widget_set_value`, réduisant les erreurs de compatibilité selon modèle/driver.
+
 ## [Version 3.0.2] - 2026-07-25
 ### Ajouté (Added)
 - Test unitaire pour valider que `aperture=0` n'envoie pas de valeur d'ouverture au boitier.

@@ -9,7 +9,6 @@ import logging
 import time
 from typing import Optional
 
-
 # Import gphoto2 with fallback for development/testing
 try:
     import gphoto2 as gp
@@ -383,12 +382,76 @@ class CameraController:
         
         try:
             widget = gp.check_result(gp.gp_widget_get_child_by_name(config, widget_name))
-            gp.check_result(gp.gp_widget_set_value(widget, value))
+
+            # Aperture labels vary by model/driver ("f/4", "4", "4.0", ...).
+            # Resolve to the exact widget choice when possible.
+            resolved_value = value
+            if widget_name == 'aperture':
+                choices = self._get_widget_choices(widget)
+                if choices:
+                    matched_choice = self._find_matching_aperture_choice(value, choices)
+                    if matched_choice is not None:
+                        resolved_value = matched_choice
+
+            gp.check_result(gp.gp_widget_set_value(widget, resolved_value))
             return True
             
         except Exception as e:
             self.logger.warning(f"Could not set {widget_name} = {value}: {e}")
             return False
+
+    def _get_widget_choices(self, widget) -> list[str]:
+        """Return selectable choices for a widget, if available."""
+        try:
+            count = gp.check_result(gp.gp_widget_count_choices(widget))
+        except Exception:
+            return []
+
+        choices = []
+        for index in range(int(count)):
+            try:
+                choice = gp.check_result(gp.gp_widget_get_choice(widget, index))
+            except Exception:
+                continue
+            if choice is not None:
+                choices.append(str(choice).strip())
+        return choices
+
+    @staticmethod
+    def _parse_aperture_value(value: str) -> Optional[float]:
+        """Parse aperture text into a numeric f-number when possible."""
+        text = str(value).strip().lower()
+        if text.startswith('f/'):
+            text = text[2:]
+        try:
+            return float(text)
+        except ValueError:
+            return None
+
+    @classmethod
+    def _find_matching_aperture_choice(cls, requested: str, choices: list[str]) -> Optional[str]:
+        """Find the best camera-specific aperture label for a requested value."""
+        if not choices:
+            return None
+
+        requested_text = str(requested).strip()
+
+        # First, prefer exact case-insensitive text match.
+        for choice in choices:
+            if choice.strip().lower() == requested_text.lower():
+                return choice
+
+        requested_number = cls._parse_aperture_value(requested_text)
+        if requested_number is None:
+            return None
+
+        # Then, match numerically (f/4 == 4.0, etc.).
+        for choice in choices:
+            choice_number = cls._parse_aperture_value(choice)
+            if choice_number is not None and abs(choice_number - requested_number) < 1e-9:
+                return choice
+
+        return None
     
     def _detect_capabilities(self):
         """Detect and cache camera capabilities."""

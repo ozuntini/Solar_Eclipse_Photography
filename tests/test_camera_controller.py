@@ -137,6 +137,24 @@ class TestCameraController(unittest.TestCase):
         # Test fractional apertures
         self.assertEqual(format_gphoto2_aperture(5.6), "f/5.6")
         self.assertEqual(format_gphoto2_aperture(2.8), "f/2.8")
+
+    def test_find_matching_aperture_choice_exact(self):
+        """Test exact text matching for aperture choices."""
+        choices = ["f/2.8", "f/4", "f/5.6"]
+        match = self.controller._find_matching_aperture_choice("f/4", choices)
+        self.assertEqual(match, "f/4")
+
+    def test_find_matching_aperture_choice_numeric(self):
+        """Test numeric matching between different aperture label formats."""
+        choices = ["2.8", "4.0", "5.6"]
+        match = self.controller._find_matching_aperture_choice("f/4", choices)
+        self.assertEqual(match, "4.0")
+
+    def test_find_matching_aperture_choice_no_match(self):
+        """Test no matching aperture choice case."""
+        choices = ["2.8", "5.6", "8"]
+        match = self.controller._find_matching_aperture_choice("f/4", choices)
+        self.assertIsNone(match)
     
     def test_format_gphoto2_shutter(self):
         """Test shutter speed formatting for GPhoto2."""

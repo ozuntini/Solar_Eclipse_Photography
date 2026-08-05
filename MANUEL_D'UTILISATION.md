@@ -128,7 +128,7 @@ Position|Nom|Valeur|Description
 4.1|Hd|0-23|Heure de début de la séquence
 4.2|Md|0-59|Minute de début de la séquence
 4.3|Sd|0-59|Seconde de début de la séquence
-5|Aperture|Diaph.|Valeur du Diaphragme (2.8,8,11...). Si la valeur est 0, le parametre ouverture n'est pas envoye au boitier.(*)
+5|Aperture|Diaph.|Valeur du Diaphragme (2.8,8,11...). Si la valeur est 0, le parametre ouverture n'est pas envoyé au boitier.(*)
 6|ISO|Num.|Sensibilité du capteur (100, 800, 6400,...)(*)
 7|ShutterSpeed|Num.|Vitesse d'exposition. Formats acceptes: secondes decimales (ex: 0.002) ou fraction (ex: 1/500).(*) 
 8|MLUDelay|Num.|Délais d'attente entre la montée du miroir et le déclenchement, en milliseconde. Si 0 pas de montée du miroir avant le déclenchement. 
